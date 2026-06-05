@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mongkut Rayong Doctor Fee Search</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22263a;
+    --border: #2e3350;
+    --accent: #4f8ef7;
+    --accent2: #38c98e;
+    --text: #e8eaf0;
+    --muted: #7b82a0;
+    --highlight: #2a3a5c;
+    --tag-bg: #1e3a5f;
+    --tag-text: #7eb8f7;
+    --fee-color: #38c98e;
+    --header-bg: linear-gradient(135deg, #1a1f35 0%, #0f1117 100%);
+    --category-bg: #1e2438;
+    --category-border: #3a4472;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+  header {
+    background: var(--header-bg);
+    border-bottom: 1px solid var(--border);
+    padding: 1.5rem 2rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-inner {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  h1 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.02em;
+    margin-bottom: 0.25rem;
+  }
+  .subtitle {
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-bottom: 1rem;
+  }
+  .search-row {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+  }
+  #searchInput {
+    flex: 1;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-size: 1rem;
+    padding: 0.65rem 1rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  #searchInput:focus { border-color: var(--accent); }
+  #searchInput::placeholder { color: var(--muted); }
+  .filter-row {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.65rem;
+    flex-wrap: wrap;
+  }
+  .filter-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    color: var(--muted);
+    font-size: 0.75rem;
+    padding: 0.3rem 0.8rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .filter-btn:hover, .filter-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+  main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 1.5rem 2rem;
+  }
+  .stats-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+  .result-count { color: var(--accent2); font-weight: 600; }
+  .results { display: flex; flex-direction: column; gap: 0.5rem; }
+  .result-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.85rem 1.1rem;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.5rem;
+    cursor: default;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .result-card:hover {
+    border-color: var(--accent);
+    background: var(--surface2);
+  }
+  .proc-name {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1.4;
+  }
+  .proc-meta {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.35rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .code-tag {
+    background: var(--tag-bg);
+    color: var(--tag-text);
+    font-size: 0.72rem;
+    font-family: 'Courier New', monospace;
+    padding: 0.15rem 0.5rem;
+    border-radius: 5px;
+    font-weight: 600;
+  }
+  .cat-tag {
+    font-size: 0.72rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 5px;
+    font-weight: 500;
+  }
+  .fee-col {
+    text-align: right;
+    white-space: nowrap;
+  }
+  .fee-amount {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--fee-color);
+  }
+  .fee-label {
+    font-size: 0.68rem;
+    color: var(--muted);
+    margin-top: 0.1rem;
+  }
+  mark {
+    background: rgba(79,142,247,0.25);
+    color: inherit;
+    border-radius: 2px;
+    padding: 0 1px;
+  }
+  .empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--muted);
+  }
+  .empty-icon { font-size: 2.5rem; margin-bottom: 1rem; }
+  .empty-state h3 { font-size: 1rem; font-weight: 500; margin-bottom: 0.5rem; color: var(--text); }
+  .kbd-hint {
+    font-size: 0.72rem;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.1rem 0.4rem;
+    color: var(--muted);
+    font-family: monospace;
+  }
+  @media (max-width: 600px) {
+    header, main { padding-left: 1rem; padding-right: 1rem; }
+    h1 { font-size: 1.1rem; }
+    .result-card { grid-template-columns: 1fr; }
+    .fee-col { text-align: left; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <h1>🏥 Mongkut Rayong Doctor Fee Search</h1>
+    <div class="subtitle">DF + ICD-10 TM Code — ศัลยแพทย์ อัตราค่าแพทย์ 2568 OR</div>
+    <div class="search-row">
+      <input type="text" id="searchInput" placeholder="Search procedure… e.g. appendectomy, EGD, cholecystectomy" autofocus autocomplete="off" spellcheck="false">
+    </div>
+    <div class="filter-row" id="filterRow">
+      <button class="filter-btn active" data-cat="">All</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="stats-bar">
+    <span><span class="result-count" id="resultCount">0</span> procedures found</span>
+    <span>Total in DB: <span id="totalCount">0</span></span>
+  </div>
+  <div class="results" id="results"></div>
+</main>
+
+<script>
+const DB = [
+  // ===== OESOPHAGUS (rows 6-18) =====
+  {code:"384-19-03", name:"Oesophagogastrectomy and anastomosis of oesophagus to stomach", fee:25000, cat:"Oesophagus"},
+  {code:"384-19-06", name:"Oesophagogastrectomy and anastomosis of pharynx to stomach", fee:30000, cat:"Oesophagus"},
+  {code:"384-19-07", name:"Oesophagectomy and interposition of jejunum", fee:30000, cat:"Oesophagus"},
+  {code:"384-19-08", name:"Oesophagectomy and interposition of colon", fee:30000, cat:"Oesophagus"},
+  {code:"384-19-02", name:"Partial oesophagectomy and end to end anastomosis of oesophagus", fee:20000, cat:"Oesophagus"},
+  {code:"384-19-01", name:"Excision of lesion of oesophagus", fee:10000, cat:"Oesophagus"},
+  {code:"384-05-02", name:"Bypass of oesophagus by anastomosis of oesophagus to oesophagus", fee:14000, cat:"Oesophagus"},
+  {code:"384-05-03", name:"Bypass of oesophagus by anastomosis of oesophagus to stomach", fee:14000, cat:"Oesophagus"},
+  {code:"384-05-06", name:"Bypass of oesophagus by interposition of jejunum", fee:14000, cat:"Oesophagus"},
+  {code:"384-05-08", name:"Bypass of oesophagus by interposition of microvascularly attached colon", fee:16000, cat:"Oesophagus"},
+  {code:"384-55-01", name:"Revision of anastomosis of oesophagus", fee:16000, cat:"Oesophagus"},
+  {code:"384-54-02", name:"Removal of bypass of oesophagus", fee:14000, cat:"Oesophagus"},
+  {code:"384-54-03", name:"Closure of bypass of oesophagus", fee:14000, cat:"Oesophagus"},
+
+  // ===== STOMACH (rows 20-35) =====
+  {code:"446-19-07", name:"Total gastrectomy with GI continuity", fee:20000, cat:"Stomach"},
+  {code:"446-19-03", name:"Partial gastrectomy with GI continuity, with or without vagotomy", fee:20000, cat:"Stomach"},
+  {code:"442-18-00", name:"Negative laparotomy exploratory adult", fee:9000, cat:"Exploratory"},
+  {code:"442-18-01", name:"Laparotomy exploratory, staging for biliary atresia", fee:12000, cat:"Exploratory"},
+  {code:"442-18-02", name:"Laparotomy staging for Hodgkins disease", fee:12000, cat:"Exploratory"},
+  {code:"446-19-01", name:"Open excision of lesion of stomach", fee:12000, cat:"Stomach"},
+  {code:"446-05-03", name:"Gastric bypass by anastomosis of stomach to duodenum", fee:14000, cat:"Stomach"},
+  {code:"446-05-05", name:"Gastric bypass by anastomosis of stomach to jejunum", fee:12000, cat:"Stomach"},
+  {code:"446-69-02", name:"Creation of permanent gastrostomy (mucosal lining)", fee:14000, cat:"Stomach"},
+  {code:"446-69-01", name:"Temporary gastrostomy (serosal lining)", fee:10000, cat:"Stomach"},
+  {code:"446-51-03", name:"Gastropexy", fee:12000, cat:"Stomach"},
+  {code:"446-51-02", name:"Closure of perforation of stomach", fee:12000, cat:"Stomach"},
+  {code:"446-50-01", name:"Open removal of foreign body from stomach", fee:12000, cat:"Stomach"},
+  {code:"447-27-00", name:"Pyloromyotomy", fee:12000, cat:"Stomach"},
+  {code:"447-51-00", name:"Pyloroplasty + vagotomy", fee:14000, cat:"Stomach"},
+
+  // ===== UPPER GI ENDOSCOPY (rows 38-45) =====
+  {code:"042-50-03", name:"Fiberoptic endoscopic snare removal of lesion of upper gastrointestinal tract", fee:4000, cat:"Upper GI Endoscopy"},
+  {code:"042-13-06", name:"Fiberoptic endoscopic laser destruction of lesion of upper gastrointestinal tract", fee:4000, cat:"Upper GI Endoscopy"},
+  {code:"042-13-04", name:"Fiberoptic endoscopic cauterisation of lesion of upper gastrointestinal tract", fee:4000, cat:"Upper GI Endoscopy"},
+  {code:"042-13-05", name:"Fiberoptic endoscopic sclerotherapy to lesion of upper gastrointestinal tract", fee:4000, cat:"Upper GI Endoscopy"},
+  {code:"042-28-40", name:"Fiberoptic endoscopic insertion of prosthesis into upper gastrointestinal tract", fee:4500, cat:"Upper GI Endoscopy"},
+  {code:"042-50-02", name:"Fiberoptic endoscopic removal of foreign body from upper gastrointestinal tract", fee:4000, cat:"Upper GI Endoscopy"},
+  {code:"384-14-00", name:"Fiberoptic endoscopic dilation of upper gastrointestinal tract (Esophagus)", fee:4000, cat:"Upper GI Endoscopy"},
+  {code:"042-18-02", name:"Fiberoptic endoscopic examination of upper gastrointestinal tract and biopsy of lesion", fee:3000, cat:"Upper GI Endoscopy"},
+
+  // ===== DUODENUM (rows 48-56) =====
+  {code:"448-19-03", name:"Excision of lesion of duodenum", fee:14000, cat:"Duodenum"},
+  {code:"448-05-01", name:"Bypass of duodenum by anastomosis", fee:14000, cat:"Duodenum"},
+  {code:"448-19-01", name:"Open biopsy of lesion of duodenum", fee:14000, cat:"Duodenum"},
+  {code:"448-51-01", name:"Closure of perforation of duodenum", fee:12000, cat:"Duodenum"},
+  {code:"448-50-03", name:"Open removal of foreign body from duodenum", fee:12000, cat:"Duodenum"},
+  {code:"448-28-42", name:"Open insertion of tubal prosthesis into duodenum", fee:12000, cat:"Duodenum"},
+  {code:"448-27-01", name:"Incision of duodenum", fee:12000, cat:"Duodenum"},
+  {code:"448-53-01", name:"Correction of malrotation of duodenum", fee:14000, cat:"Duodenum"},
+  {code:"448-51-03", name:"Duodenoplasty", fee:14000, cat:"Duodenum"},
+
+  // ===== JEJUNUM / ILEUM (rows 59-81) =====
+  {code:"449-47-04", name:"Small bowel resection with anastomosis (Jejunum)", fee:12000, cat:"Jejunum / Ileum"},
+  {code:"450-47-04", name:"Small bowel resection with anastomosis (Ileum)", fee:12000, cat:"Jejunum / Ileum"},
+  {code:"449-19-03", name:"Excision of lesion of small bowel (Jejunum)", fee:12000, cat:"Jejunum / Ileum"},
+  {code:"450-19-03", name:"Excision of lesion of small bowel (Ileum)", fee:12000, cat:"Jejunum / Ileum"},
+  {code:"449-69-01", name:"Creation of jejunostomy", fee:12000, cat:"Jejunum / Ileum"},
+  {code:"449-55-01", name:"Revision of jejunostomy", fee:12000, cat:"Jejunum / Ileum"},
+  {code:"449-05-01", name:"Small bowel bypass by enteroenterostomy (Jejunum)", fee:12000, cat:"Jejunum / Ileum"},
+  {code:"450-05-01", name:"Small bowel bypass by enteroenterostomy (Ileum)", fee:12000, cat:"Jejunum / Ileum"},
+  {code:"449-19-02", name:"Open biopsy of small bowel lesion (Jejunum)", fee:12000, cat:"Jejunum / Ileum"},
+  {code:"450-19-02", name:"Open biopsy of small bowel lesion (Ileum)", fee:12000, cat:"Jejunum / Ileum"},
+  {code:"449-51-01", name:"Closure of perforation of small bowel (Jejunum)", fee:12000, cat:"Jejunum / Ileum"},
+  {code:"450-51-01", name:"Closure of perforation of small bowel (Ileum)", fee:12000, cat:"Jejunum / Ileum"},
+  {code:"450-19-03", name:"Excision of Meckel's diverticulum", fee:12000, cat:"Jejunum / Ileum"},
+  {code:"450-55-01", name:"Revision of ileostomy", fee:12000, cat:"Jejunum / Ileum"},
+  {code:"450-54-01", name:"Closure of ileostomy", fee:12000, cat:"Jejunum / Ileum"},
+  {code:"450-48-01", name:"Open reduction of intussusception of ileum", fee:12000, cat:"Jejunum / Ileum"},
+  {code:"450-51-02", name:"Plication of ileum", fee:12000, cat:"Jejunum / Ileum"},
+  {code:"450-51-03", name:"Strictureplasty of ileum", fee:12000, cat:"Jejunum / Ileum"},
+  {code:"449-47-01", name:"Enterostomy (Jejunum)", fee:12000, cat:"Jejunum / Ileum"},
+  {code:"450-47-01", name:"Enterostomy (Ileum)", fee:12000, cat:"Jejunum / Ileum"},
+
+  // ===== APPENDIX / CAECUM / COLON (rows 84-104) =====
+  {code:"452-19-01", name:"Appendicectomy (simple)", fee:9000, cat:"Appendix"},
+  {code:"452-19-02", name:"Appendicectomy (complicated)", fee:12000, cat:"Appendix"},
+  {code:"452-16-01", name:"Drainage of abscess of appendix", fee:9000, cat:"Appendix"},
+  {code:"066-19-03", name:"Panproctocolectomy and ileostomy", fee:30000, cat:"Colon"},
+  {code:"066-19-03", name:"Panproctocolectomy and anastomosis of ileum to anus and creation of pouch", fee:30000, cat:"Colon"},
+  {code:"453-19-03", name:"Total colectomy and anastomosis of ileum to rectum", fee:30000, cat:"Colon"},
+  {code:"453-19-03", name:"Total colectomy and ileostomy and creation of rectal fistula", fee:30000, cat:"Colon"},
+  {code:"453-19-03", name:"Total colectomy and ileostomy", fee:30000, cat:"Colon"},
+  {code:"453-19-05", name:"Extended hemicolectomy and anastomosis", fee:25000, cat:"Colon"},
+  {code:"453-49-02", name:"Extended hemicolectomy and ileostomy", fee:25000, cat:"Colon"},
+  {code:"453-19-04", name:"Hemicolectomy and anastomosis", fee:20000, cat:"Colon"},
+  {code:"453-19-04", name:"Hemicolectomy and ileostomy", fee:20000, cat:"Colon"},
+  {code:"456-19-02", name:"Transverse colectomy and anastomosis", fee:20000, cat:"Colon"},
+  {code:"456-19-01", name:"Transverse colectomy and ileostomy", fee:20000, cat:"Colon"},
+  {code:"458-19-02", name:"Sigmoid colectomy and anastomosis", fee:20000, cat:"Colon"},
+  {code:"458-19-02", name:"Sigmoid colectomy and ileostomy", fee:20000, cat:"Colon"},
+  {code:"453-19-07", name:"Colectomy and anastomosis", fee:20000, cat:"Colon"},
+  {code:"453-19-07", name:"Colectomy and ileostomy", fee:20000, cat:"Colon"},
+  {code:"453-19-03", name:"Segment resection of colon", fee:16000, cat:"Colon"},
+  {code:"453-19-02", name:"Wedge excision of lesion of colon", fee:12000, cat:"Colon"},
+  {code:"453-05-01", name:"Bypass of colon by anastomosis", fee:14000, cat:"Colon"},
+
+  // ===== COLON continued (rows 107-130) =====
+  {code:"454-69-01", name:"Tube caecostomy", fee:12000, cat:"Colon"},
+  {code:"453-69-01", name:"Colostomy", fee:12000, cat:"Colon"},
+  {code:"453-55-01", name:"Revision of colostomy", fee:12000, cat:"Colon"},
+  {code:"453-54-01", name:"Closure of colostomy", fee:12000, cat:"Colon"},
+  {code:"453-48-01", name:"Open reduction of intussusception of colon", fee:14000, cat:"Colon"},
+  {code:"453-48-01", name:"Open reduction of volvulus of colon", fee:14000, cat:"Colon"},
+  {code:"453-18-02", name:"Open colonoscopy incl. caecum", fee:12000, cat:"Colon"},
+  {code:"453-50-03", name:"Open removal of foreign body from colon", fee:12000, cat:"Colon"},
+  {code:"453-19-05", name:"Fiberoptic endoscopic snare removal of lesion of colon", fee:5000, cat:"Colonoscopy"},
+  {code:"453-13-07", name:"Fiberoptic endoscopic cauterisation of lesion of colon", fee:5000, cat:"Colonoscopy"},
+  {code:"453-13-01", name:"Fiberoptic endoscopic laser destruction of lesion of colon", fee:5000, cat:"Colonoscopy"},
+  {code:"453-14-01", name:"Fiberoptic endoscopic dilation of colon", fee:5000, cat:"Colonoscopy"},
+  {code:"453-50-01", name:"Fiberoptic endoscopic removal of foreign body from colon", fee:5000, cat:"Colonoscopy"},
+  {code:"453-19-01", name:"Fiberoptic endoscopic examination of colon and biopsy of lesion of colon", fee:4500, cat:"Colonoscopy"},
+  {code:"458-13-01", name:"Endoscopic cauterisation of lesion of rectosigmoid colon using fiberoptic sigmoidoscope", fee:3500, cat:"Colonoscopy"},
+  {code:"458-13-02", name:"Endoscopic laser destruction of lesion of rectosigmoid colon using fiberoptic sigmoidoscope", fee:4500, cat:"Colonoscopy"},
+  {code:"458-14-01", name:"Endoscopic dilation of rectosigmoid colon using fiberoptic sigmoidoscope", fee:4500, cat:"Colonoscopy"},
+  {code:"429-10-01", name:"Endoscopic coagulation of blood vessel of rectosigmoid colon using fiberoptic sigmoidoscope", fee:4500, cat:"Colonoscopy"},
+  {code:"458-28-41", name:"Endoscopic insertion of tubal prosthesis into lower rectosigmoid colon fiberoptic sigmoidoscope", fee:4500, cat:"Colonoscopy"},
+  {code:"457-18-03", name:"Diagnostic fiberoptic endoscopic examination of rectosigmoid colon (and biopsy of lesion)", fee:3500, cat:"Colonoscopy"},
+  {code:"457-19-05", name:"Endoscopic snare removal of lesion of sigmoid colon using rigid sigmoidoscope", fee:3000, cat:"Sigmoid Colon"},
+  {code:"457-13-01", name:"Endoscopic cauterisation of lesion of sigmoid colon using rigid sigmoidoscope", fee:3000, cat:"Sigmoid Colon"},
+  {code:"457-13-03", name:"Endoscopic laser destruction of lesion of sigmoid colon using rigid sigmoidoscope", fee:3000, cat:"Sigmoid Colon"},
+  {code:"457-13-02", name:"Endoscopic cryotherapy to lesion of sigmoid colon using rigid sigmoidoscope", fee:3000, cat:"Sigmoid Colon"},
+
+  // ===== SIGMOID COLON rigid scope (rows 131-137) =====
+  {code:"457-14-01", name:"Endoscopic dilation of sigmoid colon using rigid sigmoidoscope", fee:3000, cat:"Sigmoid Colon"},
+  {code:"457-50-01", name:"Endoscopic removal of foreign body from sigmoid colon using rigid sigmoidoscope", fee:3000, cat:"Sigmoid Colon"},
+  {code:"457-28-41", name:"Endoscopic insertion of tubal prosthesis into sigmoid colon using rigid sigmoidoscope", fee:3000, cat:"Sigmoid Colon"},
+  {code:"457-18-02", name:"Diagnostic endoscopic examination of sigmoid colon and biopsy of lesion using rigid sigmoidoscope", fee:3000, cat:"Sigmoid Colon"},
+  {code:"457-19-02", name:"Endoscopic examination of sigmoid colon and biopsy of lesion using rigid sigmoidoscope", fee:3000, cat:"Sigmoid Colon"},
+  {code:"457-18-01", name:"Fiberoptic endoscopic examination of sigmoid colon", fee:2000, cat:"Sigmoid Colon"},
+  {code:"452-19-03", name:"Laparoscopic appendectomy", fee:16000, cat:"Appendix"},
+
+  // ===== RECTUM / ANUS (rows 140-194) =====
+  {code:"459-19-06", name:"Abdominoperineal excision of rectum and end colostomy", fee:30000, cat:"Rectum / Anus"},
+  {code:"459-19-07", name:"Proctectomy and anastomosis of colon to anus", fee:30000, cat:"Rectum / Anus"},
+  {code:"459-19-06", name:"Anterior resection of rectum", fee:30000, cat:"Rectum / Anus"},
+  {code:"458-19-03", name:"Rectosigmoidectomy and closure of rectal stump and exteriorisation of bowel", fee:20000, cat:"Rectum / Anus"},
+  {code:"459-19-05", name:"Open excision of lesion of rectum", fee:14000, cat:"Rectum / Anus"},
+  {code:"459-65-01", name:"Anterior fixation of rectum", fee:14000, cat:"Rectum / Anus"},
+  {code:"459-65-02", name:"Posterior fixation of rectum", fee:14000, cat:"Rectum / Anus"},
+  {code:"514-51-04", name:"Abdominal repair of levator ani muscles", fee:20000, cat:"Rectum / Anus"},
+  {code:"459-19-04", name:"Transsphincteric excision of lesion of rectum", fee:14000, cat:"Rectum / Anus"},
+  {code:"458-19-03", name:"Rectosigmoidectomy and peranal anastomosis", fee:30000, cat:"Rectum / Anus"},
+  {code:"459-19-03", name:"Peranal excision of lesion of rectum", fee:8000, cat:"Rectum / Anus"},
+  {code:"514-28-01", name:"Insertion of encircling suture around perianal sphincter", fee:4500, cat:"Rectum / Anus"},
+  {code:"514-51-03", name:"Perineal plication of levator ani muscles and anal sphincters", fee:14000, cat:"Rectum / Anus"},
+  {code:"459-19-02", name:"Excision of mucosal prolapse of rectum", fee:4500, cat:"Rectum / Anus"},
+  {code:"459-18-01", name:"Examination of rectum under anaesthetic", fee:2000, cat:"Rectum / Anus"},
+  {code:"459-14-01", name:"Rectum stricture, dilation", fee:2000, cat:"Rectum / Anus"},
+  {code:"513-19-02", name:"Excision of polyps of anus", fee:3000, cat:"Anal / Haemorrhoid"},
+  {code:"513-19-01", name:"Excision of skin tag(s)", fee:2000, cat:"Anal / Haemorrhoid"},
+  {code:"513-19-07", name:"Radical excision of anal tumor", fee:10000, cat:"Anal / Haemorrhoid"},
+  {code:"514-27-00", name:"Incision of sphincter of anus", fee:2000, cat:"Anal / Haemorrhoid"},
+  {code:"513-13-00", name:"Cauterisation of lesion of anus", fee:2000, cat:"Anal / Haemorrhoid"},
+  {code:"514-51-01", name:"Repair of anal sphincter (Direct)", fee:10000, cat:"Anal / Haemorrhoid"},
+  {code:"459-47-04", name:"Reanastomosis of rectum to anal canal for correction of congenital atresia of rectum", fee:14000, cat:"Rectum / Anus"},
+  {code:"513-51-01", name:"Anal injury or fistula repair", fee:10000, cat:"Anal / Haemorrhoid"},
+  {code:"529-19-00", name:"Haemorrhoidectomy", fee:8000, cat:"Anal / Haemorrhoid"},
+  {code:"514-19-00", name:"Partial internal sphincterectomy of fissure", fee:5500, cat:"Anal / Haemorrhoid"},
+  {code:"532-13-00", name:"Injection of sclerosing substance into haemorrhoid three or more", fee:1500, cat:"Anal / Haemorrhoid"},
+  {code:"529-38-00", name:"Rubber band ligation of haemorrhoid - three or more", fee:1500, cat:"Anal / Haemorrhoid"},
+  {code:"513-50-00", name:"Evacuation of perianal haematoma", fee:2000, cat:"Anal / Haemorrhoid"},
+  {code:"513-27-01", name:"Laying open of low anal fistula", fee:5000, cat:"Anal / Haemorrhoid"},
+  {code:"513-27-02", name:"Laying open of high anal fistula", fee:9000, cat:"Anal / Haemorrhoid"},
+  {code:"513-28-00", name:"Insertion of seton into high anal fistula and partial laying open of tract", fee:8000, cat:"Anal / Haemorrhoid"},
+  {code:"513-45-01", name:"Fistulography of anal fistula", fee:2000, cat:"Anal / Haemorrhoid"},
+  {code:"513-19-03", name:"Biopsy of lesion of anus", fee:2000, cat:"Anal / Haemorrhoid"},
+  {code:"513-27-00", name:"Incision of septum of anus", fee:2000, cat:"Anal / Haemorrhoid"},
+  {code:"513-19-04", name:"Excision of anal fissure", fee:2000, cat:"Anal / Haemorrhoid"},
+  {code:"459-16-03", name:"Drainage of ischiorectal abscess", fee:5500, cat:"Anal / Haemorrhoid"},
+  {code:"513-16-00", name:"Drainage of perianal abscess", fee:3000, cat:"Anal / Haemorrhoid"},
+  {code:"459-16-01", name:"Drainage of perirectal abscess", fee:5000, cat:"Anal / Haemorrhoid"},
+  {code:"513-19-05", name:"Excision of pilonidal sinus and suture/skin graft", fee:8000, cat:"Anal / Haemorrhoid"},
+  {code:"513-27-03", name:"Laying open of pilonidal sinus", fee:5000, cat:"Anal / Haemorrhoid"},
+  {code:"513-45-02", name:"Injection of radiocontrast substance into pilonidal sinus", fee:2000, cat:"Anal / Haemorrhoid"},
+  {code:"459-47-05", name:"Pull-through operation for Hirschsprung's disease", fee:30000, cat:"Rectum / Anus"},
+  {code:"513-27-04", name:"Perineal anoplasty (Cut back)", fee:5000, cat:"Rectum / Anus"},
+  {code:"513-51-04", name:"Perineal anoplasty (Anal transplant)", fee:12000, cat:"Rectum / Anus"},
+  {code:"513-51-05", name:"Anorectoplasty (abdominoperineal approach)", fee:20000, cat:"Rectum / Anus"},
+  {code:"513-51-06", name:"Anorectoplasty (sacroperineal approach)", fee:16000, cat:"Rectum / Anus"},
+  {code:"513-51-07", name:"Anorectoplasty (sacroabdominalperineal approach)", fee:30000, cat:"Rectum / Anus"},
+  {code:"459-19-01", name:"Rectal polypectomy", fee:3500, cat:"Rectum / Anus"},
+  {code:"459-19-05", name:"Rectal biopsy (full thickness)", fee:10000, cat:"Rectum / Anus"},
+  {code:"513-51-02", name:"Anoplasty for stenosis: less than 1/3 circumference", fee:10000, cat:"Rectum / Anus"},
+  {code:"513-51-03", name:"Anoplasty for stenosis: more than 1/3 circumference", fee:14000, cat:"Rectum / Anus"},
+  {code:"514-51-02", name:"Repair of anal sphincter using muscle transposition", fee:20000, cat:"Rectum / Anus"},
+
+  // ===== OTHER / ADRENAL (rows 197-201) =====
+  {code:"477-19-05", name:"Bilateral adrenalectomy", fee:14000, cat:"Adrenal"},
+  {code:"477-19-04", name:"Unilateral adrenalectomy", fee:14000, cat:"Adrenal"},
+  {code:"477-19-03", name:"Partial adrenalectomy", fee:14000, cat:"Adrenal"},
+  {code:"477-19-02", name:"Excision of lesion of aberrant adrenal tissue", fee:16000, cat:"Adrenal"},
+  {code:"477-19-01", name:"Excision of lesion of adrenal gland", fee:14000, cat:"Adrenal"},
+  {code:"477-19-06", name:"Laparoscopic adrenalectomy", fee:20000, cat:"Adrenal"},
+
+  // ===== LIVER / HEPATOBILIARY (rows 202-227) =====
+  {code:"464-19-04", name:"Hemihepatectomy (Rt Lobe)", fee:30000, cat:"Liver"},
+  {code:"465-19-04", name:"Hemihepatectomy (Lt Lobe)", fee:30000, cat:"Liver"},
+  {code:"463-19-04", name:"Resection of segment of liver", fee:20000, cat:"Liver"},
+  {code:"463-19-03", name:"Wedge excision of liver", fee:14000, cat:"Liver"},
+  {code:"463-16-03", name:"Marsupialisation of lesion of liver", fee:12000, cat:"Liver"},
+  {code:"463-51-01", name:"Repair of simple laceration of liver", fee:14000, cat:"Liver"},
+  {code:"463-16-02", name:"Open drainage of liver", fee:12000, cat:"Liver"},
+  {code:"469-50-01", name:"Open removal of intrahepatic duct calculi", fee:25000, cat:"Liver"},
+  {code:"442-18-06", name:"Diagnostic endoscopic examination of liver", fee:10000, cat:"Liver"},
+  {code:"463-16-00", name:"Percutaneous drainage of liver", fee:4500, cat:"Liver"},
+  {code:"464-19-05", name:"Extended hemihepatectomy (Rt Lobe)", fee:35000, cat:"Liver"},
+  {code:"465-19-05", name:"Extended hemihepatectomy (Lt Lobe)", fee:35000, cat:"Liver"},
+  {code:"463-19-05", name:"Median Segmentectomy", fee:35000, cat:"Liver"},
+  {code:"469-47-01", name:"Hilar resection with bile duct reconstruction", fee:35000, cat:"Liver"},
+  {code:"463-19-02", name:"Biopsy of liver (needle)", fee:3000, cat:"Liver"},
+
+  // ===== CHOLECYSTECTOMY (rows 220-227) =====
+  {code:"467-19-01", name:"Open cholecystectomy", fee:14000, cat:"Gallbladder"},
+  {code:"467-19-04", name:"Open cholecystectomy and exploration of common bile duct", fee:16000, cat:"Gallbladder"},
+  {code:"467-19-02", name:"Partial cholecystectomy", fee:12000, cat:"Gallbladder"},
+  {code:"467-19-05", name:"Cholecystectomy with sphincteroplasty", fee:20000, cat:"Gallbladder"},
+  {code:"467-05-01", name:"Anastomosis of gall bladder to intestine (cholecystoenteric bypass)", fee:14000, cat:"Gallbladder"},
+  {code:"467-47-01", name:"Cholecystostomy", fee:10000, cat:"Gallbladder"},
+  {code:"461-19-03", name:"Laparoscopic cholecystectomy", fee:16000, cat:"Gallbladder"},
+  {code:"461-19-07", name:"Laparoscopic cholecystectomy with intraoperative cholangiography", fee:20000, cat:"Gallbladder"},
+  {code:"461-19-07", name:"Laparoscopic cholecystectomy - explor common bile duct", fee:25000, cat:"Gallbladder"},
+
+  // ===== BILE DUCT (rows 226-255) =====
+  {code:"470-19-04", name:"Partial excision of bile duct and choledochoduodenostomy / jejunostomy", fee:20000, cat:"Bile Duct"},
+  {code:"470-19-02", name:"Partial excision of bile duct and end to end anastomosis of bile duct", fee:20000, cat:"Bile Duct"},
+  {code:"470-47-02", name:"Peripheral reconstruction of bile duct", fee:20000, cat:"Bile Duct"},
+  {code:"470-27-01", name:"Open choledocholithotomy for recurrent stone", fee:20000, cat:"Bile Duct"},
+  {code:"472-51-05", name:"Sphincteroplasty of bile duct and pancreatic duct using duodenal approach", fee:16000, cat:"Bile Duct"},
+  {code:"472-51-06", name:"Sphincterotomy of bile duct and pancreatic duct using duodenal approach", fee:18000, cat:"Bile Duct"},
+  {code:"472-19-01", name:"Biopsy of lesion of ampulla of Vater using duodenal approach", fee:14000, cat:"Bile Duct"},
+  {code:"470-18-02", name:"Operative choledochoscopy", fee:3000, cat:"Bile Duct"},
+  {code:"472-27-01", name:"Endoscopic sphincterotomy of sphincter of Oddi and removal of calculus", fee:12000, cat:"Bile Duct"},
+  {code:"472-27-01", name:"Endoscopic sphincterotomy of sphincter of Oddi and insertion of tubal prosthesis into bile duct", fee:10500, cat:"Bile Duct"},
+  {code:"472-08-41", name:"Endoscopic sphincterotomy of sphincter of Oddi and insertion of tubal prosthesis into bile duct", fee:10500, cat:"Bile Duct"},
+  {code:"472-27-02", name:"Endoscopic sphincterotomy of accessory ampulla of Vater", fee:9000, cat:"Bile Duct"},
+  {code:"470-50-02", name:"Endoscopic retrograde removal of tubal prosthesis from bile duct", fee:3500, cat:"Bile Duct"},
+  {code:"470-14-01", name:"Endoscopic dilation of bile duct", fee:4500, cat:"Bile Duct"},
+  {code:"470-19-03", name:"Excision of choledochal cyst", fee:20000, cat:"Bile Duct"},
+  {code:"470-14-02", name:"Percutaneous dilation of anastomosis of bile duct and insertion of tubal prosthetic", fee:9000, cat:"Bile Duct"},
+  {code:"469-28-41", name:"Percutaneous insertion of tubal prosthesis into hepatic duct(s)", fee:9000, cat:"Bile Duct"},
+  {code:"470-28-41", name:"Percutaneous insertion of tubal prosthesis into common bile duct", fee:9000, cat:"Bile Duct"},
+  {code:"470-50-01", name:"Removal of percutaneously inserted tubal prosthesis from bile duct", fee:2000, cat:"Bile Duct"},
+  {code:"470-50-04", name:"Endoscopic removal of calculus from bile duct along T-tube tract", fee:5000, cat:"Bile Duct"},
+  {code:"470-50-03", name:"Percutaneous removal of calculus from bile duct along T-tube tract", fee:5000, cat:"Bile Duct"},
+
+  // ===== ERCP / ENDOSCOPIC BILIARY-PANCREATIC (rows 242-256) =====
+  {code:"474-28-00", name:"Endoscopic retrograde insertion of tubal prosthesis into pancreatic duct", fee:5000, cat:"ERCP"},
+  {code:"474-50-00", name:"Endoscopic retrograde removal of calculus from pancreatic duct", fee:5000, cat:"ERCP"},
+  {code:"473-16-03", name:"Endoscopic retrograde drainage of lesion of pancreas", fee:5000, cat:"ERCP"},
+  {code:"474-14-00", name:"Endoscopic retrograde dilation of pancreatic duct", fee:5000, cat:"ERCP"},
+  {code:"471-18-B1", name:"Endoscopic retrograde cholangiopancreatography (ERCP)", fee:5000, cat:"ERCP"},
+  {code:"471-19-01", name:"ERCP and biopsy of lesion of biliary or pancreatic system", fee:5000, cat:"ERCP"},
+  {code:"470-19-01", name:"Endoscopic retrograde cholangiography and biopsy of lesion of bile duct", fee:5000, cat:"ERCP"},
+  {code:"474-19-02", name:"Endoscopic retrograde pancreatography and biopsy of lesion of pancreas", fee:5000, cat:"ERCP"},
+
+  // ===== CHOLANGIOGRAPHY / PANCREAS (rows 257-268) =====
+  {code:"471-18-A2", name:"Cholangiography T-tube (intra operative)", fee:2000, cat:"Biliary / Pancreas"},
+  {code:"471-18-60", name:"Percutaneous cholangiography", fee:2500, cat:"Biliary / Pancreas"},
+  {code:"473-19-06", name:"Total pancreatectomy", fee:25000, cat:"Biliary / Pancreas"},
+  {code:"473-19-05", name:"Pancreaticoduodenectomy and excision of surrounding tissue", fee:35000, cat:"Biliary / Pancreas"},
+  {code:"473-19-05", name:"Subtotal pancreatectomy", fee:20000, cat:"Biliary / Pancreas"},
+  {code:"473-19-03", name:"Excision of lesion of pancreas", fee:14000, cat:"Biliary / Pancreas"},
+  {code:"473-19-06", name:"Cystenterostomy for pancreatic pseudocyst", fee:16000, cat:"Biliary / Pancreas"},
+  {code:"473-19-06", name:"Open biopsy of pancreas", fee:12000, cat:"Biliary / Pancreas"},
+  {code:"473-18-02", name:"Percutaneous drainage of lesion of pancreas", fee:8000, cat:"Biliary / Pancreas"},
+  {code:"473-18-02", name:"Diagnostic percutaneous aspiration of lesion of pancreas", fee:8000, cat:"Biliary / Pancreas"},
+  {code:"474-21-01", name:"Percutaneous puncture of pancreatic duct and pancreatography", fee:8000, cat:"Biliary / Pancreas"},
+  {code:"476-19-05", name:"Total splenectomy", fee:14000, cat:"Spleen"},
+  {code:"476-19-05", name:"Partial splenectomy", fee:14000, cat:"Spleen"},
+  {code:"476-51-02", name:"Splenorrhaphy", fee:14000, cat:"Spleen"},
+
+  // ===== KASAI / EXPLOR LAP (rows 269-275) =====
+  {code:"469-47-03", name:"Kasai operation", fee:25000, cat:"Liver"},
+  {code:"449-18-04", name:"Explor.lap, intraoperative cholangiography, liver biopsy", fee:12000, cat:"Exploratory"},
+  {code:"449-18-03", name:"Explor.lap, liver biopsy", fee:10000, cat:"Exploratory"},
+
+  // ===== MISCELLANEOUS =====
+  {code:"426-18-02", name:"Proximal gastric vagotomy including selective vagotomy parietal cell vagotomy", fee:18000, cat:"Stomach"},
+
+  // ===== ABDOMINAL WALL (rows 280-305) =====
+  {code:"438-51-02", name:"Repair of rupture of diaphragm, transabdominal", fee:16000, cat:"Abdominal Wall"},
+  {code:"438-51-01", name:"Plication of diaphragm, transabdominal", fee:16000, cat:"Abdominal Wall"},
+  {code:"438-51-04", name:"Closure of fistula of diaphragm, transabdominal", fee:16000, cat:"Abdominal Wall"},
+  {code:"438-51-03", name:"Repair of congenital diaphragmatic hernia, transabdominal", fee:16000, cat:"Abdominal Wall"},
+  {code:"438-51-41", name:"Insertion of prosthesis to repair diaphragm, transabdominal", fee:16000, cat:"Abdominal Wall"},
+
+  // ===== HERNIA (rows 289-305) =====
+  {code:"405-51-01", name:"Primary repair of inguinal hernia", fee:8000, cat:"Hernia"},
+  {code:"405-51-02", name:"Strangulated hernia repair", fee:8000, cat:"Hernia"},
+  {code:"405-51-04", name:"Repair of recurrent inguinal hernia", fee:12000, cat:"Hernia"},
+  {code:"405-51-02", name:"Primary repair of femoral hernia", fee:8000, cat:"Hernia"},
+  {code:"405-51-05", name:"Repair of recurrent femoral hernia", fee:10000, cat:"Hernia"},
+  {code:"405-51-09", name:"Repair of umbilical hernia", fee:8000, cat:"Hernia"},
+  {code:"405-51-07", name:"Incisional herniorrhaphy", fee:9000, cat:"Hernia"},
+  {code:"405-51-03", name:"Repair of ventral hernia", fee:9000, cat:"Hernia"},
+  {code:"403-19-02", name:"Excision of fistula of omphalomesenteric duct", fee:9000, cat:"Hernia"},
+  {code:"403-19-02", name:"Excision of fistula of urachus", fee:9000, cat:"Hernia"},
+  {code:"405-51-02", name:"Primary closure of omphalocele or gastroschisis", fee:9000, cat:"Hernia"},
+  {code:"403-51-02", name:"Repair of artificial sac (Omphalocele or gastroschisis)", fee:10000, cat:"Hernia"},
+  {code:"405-50-00", name:"Removal of artificial sac and closure of abdominal wall", fee:8000, cat:"Hernia"},
+  {code:"503-19-03", name:"Hydrocelectomy (inguinal approach)", fee:9000, cat:"Hernia"},
+  {code:"405-51-07", name:"Laparoscopic hernioplasty unilateral", fee:18000, cat:"Hernia"},
+  {code:"405-51-06", name:"Laparoscopic hernioplasty bilateral", fee:20000, cat:"Hernia"},
+
+  // ===== PERITONEUM (rows 308-321) =====
+  {code:"439-16-03", name:"Open drainage of subphrenic abscess", fee:12000, cat:"Peritoneum"},
+  {code:"442-16-03", name:"Open drainage of abdominal abscess", fee:12000, cat:"Peritoneum"},
+  {code:"460-19-03", name:"Excision or destruction of lesion of omentum", fee:12000, cat:"Peritoneum"},
+  {code:"443-15-02", name:"Lysis of adhesions of peritoneum-complicated", fee:12000, cat:"Peritoneum"},
+  {code:"443-15-01", name:"Lysis of adhesions of peritoneum-simple", fee:14000, cat:"Peritoneum"},
+  {code:"442-18-05", name:"Laparoscopic examination+biopsy", fee:10000, cat:"Peritoneum"},
+  {code:"443-15-03", name:"Laparoscopic division of adhesion of peritoneum", fee:14000, cat:"Peritoneum"},
+  {code:"439-16-02", name:"Image controlled percutaneous drainage of subphrenic abscess", fee:7000, cat:"Peritoneum"},
+  {code:"530-16-00", name:"Image controlled percutaneous drainage of pelvic abscess", fee:7000, cat:"Peritoneum"},
+  {code:"442-16-02", name:"Image controlled percutaneous drainage of abdominal abscess", fee:7000, cat:"Peritoneum"},
+  {code:"442-16-01", name:"Paracentesis abdominis (Tapping)", fee:1000, cat:"Peritoneum"},
+  {code:"442-03-00", name:"Paracentesis abdominis (Diagnostic peritoneal lavage)", fee:3000, cat:"Peritoneum"},
+  {code:"442-29-00", name:"Introduction of substance into peritoneal cavity", fee:4500, cat:"Peritoneum"},
+  {code:"442-28-00", name:"Implantation of CAPD catheter", fee:6000, cat:"Peritoneum"},
+];
+
+// Category color map
+const catColors = {
+  "Oesophagus": "#845ef7",
+  "Stomach": "#3b5bdb",
+  "Exploratory": "#495057",
+  "Upper GI Endoscopy": "#7048e8",
+  "Duodenum": "#2f9e44",
+  "Jejunum / Ileum": "#20c997",
+  "Appendix": "#74c0fc",
+  "Colon": "#f59f00",
+  "Colonoscopy": "#ff6b6b",
+  "Sigmoid Colon": "#e67700",
+  "Rectum / Anus": "#c92a2a",
+  "Anal / Haemorrhoid": "#d6336c",
+  "Adrenal": "#ae3ec9",
+  "Liver": "#0c8599",
+  "Gallbladder": "#1098ad",
+  "Bile Duct": "#5c7cfa",
+  "ERCP": "#4dabf7",
+  "Biliary / Pancreas": "#20c997",
+  "Spleen": "#e599f7",
+  "Abdominal Wall": "#868e96",
+  "Hernia": "#ffa94d",
+  "Peritoneum": "#69db7c",
+};
+
+// Keyword alias map
+const aliases = {
+  "appendectomy": ["appendicectomy","appendix","laparoscopic appendectomy"],
+  "appendicectomy": ["appendectomy","appendix"],
+  "egd": ["endoscopic","fiberoptic","upper gastrointestinal","esophago","gastro","duodeno"],
+  "colono": ["endoscopic","colonoscopy","colon","colonoscopic","fiberoptic endoscopic","rectosigmoid"],
+  "sigmoidec": ["sigmoid colectomy","sigmoid","resection of sigmoid"],
+  "colec": ["resection of colon","colectomy","hemicolectomy","colon"],
+  "haemorrhoid": ["hemorrhoid","haemorrhoidectomy","hemorrhoidectomy","rubber band","ligation"],
+  "hemorrhoid": ["haemorrhoid","haemorrhoidectomy","rubber band"],
+  "cholecyst": ["cholecystectomy","gallbladder","cholecystostomy"],
+  "gallbladder": ["cholecystectomy","cholecyst"],
+  "lap chol": ["laparoscopic cholecystectomy"],
+  "ercp": ["sphincterotomy","sphincteroplasty","sphincter of oddi","endoscopic retrograde","bile duct","cholangiopancreatography"],
+  "whipple": ["pancreaticoduodenectomy"],
+  "apo": ["appendectomy","appendicectomy"],
+  "hx": ["haemorrhoidectomy","hemorrhoidectomy"],
+  "gastrectomy": ["gastric","stomach","gastrectomy"],
+  "oesophag": ["esophag","oesophagectomy","esophagectomy","pharynx"],
+  "esophag": ["oesophag","oesophagectomy","esophagectomy"],
+  "hepat": ["liver","hemihepatectomy","hepatectomy","hepatic"],
+  "liver": ["hepat","hemihepatectomy","hepatic","laceration of liver"],
+  "spleen": ["splenectomy","splenorrhaphy"],
+  "splenectomy": ["spleen","splenorrhaphy"],
+  "hernia": ["hernioplasty","herniorrhaphy","inguinal","femoral","umbilical","ventral","incisional"],
+  "lap": ["laparoscopic"],
+  "laparotomy": ["exploratory","negative laparotomy","staging"],
+  "explor": ["exploratory","laparotomy","exploration"],
+  "fistula": ["fistulography","laying open","seton","anal fistula"],
+  "abscess": ["drainage","ischiorectal","perianal","perirectal","subphrenic","abdominal abscess"],
+  "pilonidal": ["pilonidal sinus","skin graft"],
+  "hirschsprung": ["pull-through"],
+  "pancreat": ["pancreaticoduodenectomy","pancreatectomy","pancreas","pancreatic"],
+  "kasai": ["kasai operation"],
+  "capd": ["capd catheter","peritoneal"],
+  "tapping": ["paracentesis"],
+  "paracentesis": ["tapping","peritoneal lavage"],
+  "adhesion": ["lysis","adhesions","peritoneum"],
+  "meckel": ["meckel's diverticulum"],
+  "intussusception": ["reduction of intussusception"],
+  "volvulus": ["reduction of volvulus"],
+  "stoma": ["colostomy","ileostomy","jejunostomy","gastrostomy","enterostomy","caecostomy"],
+};
+
+function expandQuery(q) {
+  const lower = q.toLowerCase();
+  let terms = [lower];
+  for (const [key, vals] of Object.entries(aliases)) {
+    if (lower.includes(key)) {
+      terms = [...terms, ...vals.map(v => v.toLowerCase())];
+    }
+  }
+  return [...new Set(terms)];
+}
+
+function scoreMatch(proc, terms) {
+  const nameL = proc.name.toLowerCase();
+  const codeL = proc.code.toLowerCase();
+  const catL = proc.cat.toLowerCase();
+  let score = 0;
+  for (const t of terms) {
+    if (codeL === t) score += 100;
+    if (nameL.includes(t)) score += nameL.startsWith(t) ? 30 : 15;
+    if (codeL.includes(t)) score += 20;
+    if (catL.includes(t)) score += 5;
+  }
+  return score;
+}
+
+function highlight(text, terms) {
+  let out = text;
+  for (const t of terms) {
+    if (!t || t.length < 2) continue;
+    const re = new RegExp('(' + t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + ')', 'gi');
+    out = out.replace(re, '<mark>$1</mark>');
+  }
+  return out;
+}
+
+// Build category filters
+const cats = [...new Set(DB.map(d => d.cat))].sort();
+const filterRow = document.getElementById('filterRow');
+cats.forEach(cat => {
+  const btn = document.createElement('button');
+  btn.className = 'filter-btn';
+  btn.dataset.cat = cat;
+  btn.textContent = cat;
+  btn.style.borderColor = (catColors[cat] || '#444') + '55';
+  filterRow.appendChild(btn);
+});
+
+let activeCat = '';
+filterRow.addEventListener('click', e => {
+  const btn = e.target.closest('.filter-btn');
+  if (!btn) return;
+  activeCat = btn.dataset.cat;
+  filterRow.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b === btn));
+  render();
+});
+
+document.getElementById('totalCount').textContent = DB.length;
+
+function render() {
+  const raw = document.getElementById('searchInput').value.trim();
+  const results = document.getElementById('results');
+  const countEl = document.getElementById('resultCount');
+
+  let filtered = activeCat ? DB.filter(d => d.cat === activeCat) : DB;
+
+  if (!raw) {
+    countEl.textContent = filtered.length;
+    results.innerHTML = filtered.map(proc => renderCard(proc, [])).join('');
+    return;
+  }
+
+  const terms = expandQuery(raw);
+  let scored = filtered
+    .map(proc => ({ proc, score: scoreMatch(proc, terms) }))
+    .filter(({score}) => score > 0)
+    .sort((a, b) => b.score - a.score);
+
+  countEl.textContent = scored.length;
+
+  if (!scored.length) {
+    results.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">🔍</div>
+      <h3>No procedures found</h3>
+      <p>Try <span class="kbd-hint">EGD</span>, <span class="kbd-hint">colono</span>, <span class="kbd-hint">appendectomy</span>, or a code like <span class="kbd-hint">452-19-03</span></p>
+    </div>`;
+    return;
+  }
+
+  results.innerHTML = scored.map(({proc}) => renderCard(proc, terms)).join('');
+}
+
+function renderCard(proc, terms) {
+  const nameHL = terms.length ? highlight(proc.name, terms) : proc.name;
+  const codeHL = terms.length ? highlight(proc.code, terms) : proc.code;
+  const color = catColors[proc.cat] || '#888';
+  return `<div class="result-card">
+    <div>
+      <div class="proc-name">${nameHL}</div>
+      <div class="proc-meta">
+        <span class="code-tag">${codeHL}</span>
+        <span class="cat-tag" style="background:${color}22;color:${color}">${proc.cat}</span>
+      </div>
+    </div>
+    <div class="fee-col">
+      <div class="fee-amount">${proc.fee.toLocaleString()}</div>
+      <div class="fee-label">THB (DF)</div>
+    </div>
+  </div>`;
+}
+
+document.getElementById('searchInput').addEventListener('input', render);
+render();
+</script>
+</body>
+</html>
