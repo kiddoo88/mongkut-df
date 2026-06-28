@@ -53,6 +53,37 @@ tr:hover td{background:var(--card)}
 .gtot{font-size:12px;color:var(--mut)}
 label.f{font-size:12px;color:var(--mut)}
 @media print{header,.bar,.chk,th:first-child,td:first-child,.tabs,.controls{display:none}body{background:#fff;color:#000}}
+@media(max-width:640px){
+  body{font-size:15px}
+  header{padding:12px 12px}
+  h1{font-size:16px}
+  main{padding:12px 12px 110px}
+  .tabs{margin-left:0;width:100%}
+  .tab{flex:1;text-align:center}
+  .controls{gap:8px}
+  #q,#cat,#sortBy{flex:1 1 100%;min-width:0}
+  /* table -> cards */
+  table,tbody,tfoot,tr,td{display:block;width:100%}
+  thead{display:none}
+  table{border:0}
+  tbody tr{background:var(--card);border:1px solid var(--line);border-radius:12px;margin-bottom:12px;padding:12px 14px 8px;position:relative}
+  tbody tr:hover td{background:transparent}
+  td{border:0;padding:0}
+  td.code{font-size:13px;padding-right:38px;margin-bottom:2px}
+  td:nth-child(3){font-size:15px;font-weight:600;line-height:1.35;margin-bottom:8px}
+  td:first-child{position:absolute;top:10px;right:8px;padding:0;width:auto}
+  .chk{width:22px;height:22px}
+  td.num{display:flex;justify-content:space-between;align-items:center;text-align:left;border-top:1px dashed var(--line);padding:8px 0}
+  td.num::before{content:attr(data-label);color:var(--mut);font-size:13px;font-weight:600;flex:1;padding-right:10px}
+  td.num .fee{font-size:17px;font-weight:700;color:var(--acc)}
+  td.num .fee.edited{color:var(--ok)}
+  tfoot tr{background:var(--card2);border:1px solid var(--acc2);border-radius:12px;padding:10px 14px}
+  tfoot td[colspan]{font-size:15px;margin-bottom:4px}
+  tfoot td.num{border-top:1px dashed var(--line)}
+  .bar{gap:8px;padding:10px 12px}
+  .bar .tot{font-size:13px;flex:1 1 100%;order:3}
+  .bar .btn{flex:1}
+}
 </style>
 </head>
 <body>
@@ -160,13 +191,13 @@ function render(){
     h+=`<tr><td><input type="checkbox" class="chk" ${sel.has(r.id)?'checked':''} onchange="toggle(${r.id})"></td>`;
     h+=`<td class="code">${r.code}${r.suspect?' <span class="flag" title="ค่าจาก OCR อาจคลาดเคลื่อน โปรดตรวจสอบกับ PDF ต้นฉบับ — แก้ไขได้โดยคลิกที่ตัวเลข">⚠︎</span>':''}</td>`;
     h+=`<td>${r.name||'<i style=color:#64748b>(ไม่มีชื่อ)</i>'}${r.category?`<br><span class="cat">${r.category}</span>`:''}</td>`;
-    COLS.forEach(c=>{h+=`<td class="num"><span class="fee editable ${isEdited(r,c[0])?'edited':''}" onclick="editCell(this,${r.id},'${c[0]}')">${fmt(val(r,c[0]))}</span></td>`;});
+    COLS.forEach(c=>{h+=`<td class="num" data-label="${c[1]}"><span class="fee editable ${isEdited(r,c[0])?'edited':''}" onclick="editCell(this,${r.id},'${c[0]}')">${fmt(val(r,c[0]))}</span></td>`;});
     h+='</tr>';
   });
   h+='</tbody>';
   if(view==='groups'&&activeGroup!=null){
     let s1=0,s2=0,s3=0; rows.forEach(r=>{s1+=val(r,'c1')||0;s2+=val(r,'c2')||0;s3+=val(r,'c3')||0;});
-    h+=`<tfoot><tr style="font-weight:700;border-top:2px solid var(--acc2)"><td></td><td colspan="2">รวมทั้งกลุ่ม</td><td class="num">${fmt(s1)}</td><td class="num">${fmt(s2)}</td><td class="num">${fmt(s3)}</td></tr></tfoot>`;
+    h+=`<tfoot><tr style="font-weight:700;border-top:2px solid var(--acc2)"><td></td><td colspan="2">รวมทั้งกลุ่ม</td><td class="num" data-label="${COLS[0][1]}">${fmt(s1)}</td><td class="num" data-label="${COLS[1][1]}">${fmt(s2)}</td><td class="num" data-label="${COLS[2][1]}">${fmt(s3)}</td></tr></tfoot>`;
   }
   h+='</table>';
   document.getElementById('tableWrap').innerHTML=h;
