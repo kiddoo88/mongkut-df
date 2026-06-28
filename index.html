@@ -1,797 +1,228 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mongkut Rayong Doctor Fee Search</title>
+<title>ค้นหา DF — Mongkut Rayong Hospital</title>
 <style>
-  :root {
-    --bg: #0f1117;
-    --surface: #1a1d27;
-    --surface2: #22263a;
-    --border: #2e3350;
-    --accent: #4f8ef7;
-    --accent2: #38c98e;
-    --text: #e8eaf0;
-    --muted: #7b82a0;
-    --highlight: #2a3a5c;
-    --tag-bg: #1e3a5f;
-    --tag-text: #7eb8f7;
-    --fee-color: #38c98e;
-    --header-bg: linear-gradient(135deg, #1a1f35 0%, #0f1117 100%);
-    --category-bg: #1e2438;
-    --category-border: #3a4472;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: 'Segoe UI', system-ui, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-  }
-  header {
-    background: var(--header-bg);
-    border-bottom: 1px solid var(--border);
-    padding: 1.5rem 2rem;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-  .header-inner {
-    max-width: 900px;
-    margin: 0 auto;
-  }
-  h1 {
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: var(--text);
-    letter-spacing: -0.02em;
-    margin-bottom: 0.25rem;
-  }
-  .subtitle {
-    font-size: 0.8rem;
-    color: var(--muted);
-    margin-bottom: 1rem;
-  }
-  .search-row {
-    display: flex;
-    gap: 0.75rem;
-    align-items: center;
-  }
-  #searchInput {
-    flex: 1;
-    background: var(--surface);
-    border: 1.5px solid var(--border);
-    border-radius: 10px;
-    color: var(--text);
-    font-size: 1rem;
-    padding: 0.65rem 1rem;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-  #searchInput:focus { border-color: var(--accent); }
-  #searchInput::placeholder { color: var(--muted); }
-  .filter-row {
-    display: flex;
-    gap: 0.6rem;
-    margin-top: 0.65rem;
-    align-items: center;
-  }
-  #catSelect {
-    flex: 1;
-    background: var(--surface);
-    border: 1.5px solid var(--border);
-    border-radius: 10px;
-    color: var(--text);
-    font-size: 0.85rem;
-    padding: 0.5rem 0.85rem;
-    outline: none;
-    cursor: pointer;
-    transition: border-color 0.2s;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237b82a0' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 0.75rem center;
-    padding-right: 2.2rem;
-  }
-  #catSelect:focus { border-color: var(--accent); }
-  #catSelect option { background: #1a1d27; color: var(--text); }
-  .fav-filter-btn {
-    background: var(--surface);
-    border: 1.5px solid var(--border);
-    border-radius: 10px;
-    color: var(--muted);
-    font-size: 0.82rem;
-    padding: 0.5rem 0.9rem;
-    cursor: pointer;
-    transition: all 0.15s;
-    white-space: nowrap;
-    display: flex;
-    align-items: center;
-    gap: 0.3rem;
-  }
-  .fav-filter-btn:hover { border-color: #f5c518; color: #f5c518; }
-  .fav-filter-btn.active { background: #332800; border-color: #f5c518; color: #f5c518; }
-  .fav-btn {
-    background: none;
-    border: none;
-    font-size: 1.15rem;
-    cursor: pointer;
-    padding: 0.1rem 0.25rem;
-    border-radius: 5px;
-    transition: transform 0.15s;
-    line-height: 1;
-    color: var(--muted);
-    flex-shrink: 0;
-    align-self: flex-start;
-  }
-  .fav-btn:hover { transform: scale(1.2); }
-  .fav-btn.active { color: #f5c518; }
-  main {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 1.5rem 2rem;
-  }
-  .stats-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
-    font-size: 0.82rem;
-    color: var(--muted);
-  }
-  .result-count { color: var(--accent2); font-weight: 600; }
-  .results { display: flex; flex-direction: column; gap: 0.5rem; }
-  .result-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 0.85rem 1.1rem;
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    gap: 0.6rem;
-    cursor: default;
-    transition: border-color 0.15s, background 0.15s;
-  }
-  .result-card:hover {
-    border-color: var(--accent);
-    background: var(--surface2);
-  }
-  .result-card.favourited { border-color: #f5c51855; }
-  .proc-name {
-    font-size: 0.95rem;
-    font-weight: 500;
-    color: var(--text);
-    line-height: 1.4;
-  }
-  .proc-meta {
-    display: flex;
-    gap: 0.5rem;
-    margin-top: 0.35rem;
-    flex-wrap: wrap;
-    align-items: center;
-  }
-  .code-tag {
-    background: var(--tag-bg);
-    color: var(--tag-text);
-    font-size: 0.72rem;
-    font-family: 'Courier New', monospace;
-    padding: 0.15rem 0.5rem;
-    border-radius: 5px;
-    font-weight: 600;
-  }
-  .cat-tag {
-    font-size: 0.72rem;
-    padding: 0.15rem 0.5rem;
-    border-radius: 5px;
-    font-weight: 500;
-  }
-  .fee-col {
-    text-align: right;
-    white-space: nowrap;
-  }
-  .fee-amount {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: var(--fee-color);
-  }
-  .fee-label {
-    font-size: 0.68rem;
-    color: var(--muted);
-    margin-top: 0.1rem;
-  }
-  mark {
-    background: rgba(79,142,247,0.25);
-    color: inherit;
-    border-radius: 2px;
-    padding: 0 1px;
-  }
-  .empty-state {
-    text-align: center;
-    padding: 4rem 2rem;
-    color: var(--muted);
-  }
-  .empty-icon { font-size: 2.5rem; margin-bottom: 1rem; }
-  .empty-state h3 { font-size: 1rem; font-weight: 500; margin-bottom: 0.5rem; color: var(--text); }
-  .kbd-hint {
-    font-size: 0.72rem;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 0.1rem 0.4rem;
-    color: var(--muted);
-    font-family: monospace;
-  }
-  @media (max-width: 600px) {
-    header, main { padding-left: 1rem; padding-right: 1rem; }
-    h1 { font-size: 1.1rem; }
-    .result-card { grid-template-columns: auto 1fr auto; }
-    .fee-col { text-align: right; }
-  }
+:root{--bg:#0f172a;--card:#1e293b;--card2:#273449;--line:#334155;--txt:#e2e8f0;--mut:#94a3b8;--acc:#38bdf8;--acc2:#0ea5e9;--warn:#fbbf24;--ok:#34d399;--danger:#f87171}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,"Segoe UI","Noto Sans Thai",Tahoma,sans-serif;background:var(--bg);color:var(--txt);font-size:15px}
+header{position:sticky;top:0;z-index:20;background:linear-gradient(180deg,#0f172a,#0f172af2);backdrop-filter:blur(6px);border-bottom:1px solid var(--line);padding:14px 18px}
+.htop{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+h1{font-size:18px;margin:0;font-weight:700}
+.sub{color:var(--mut);font-size:12px}
+.tabs{display:flex;gap:6px;margin-left:auto}
+.tab{padding:7px 14px;border-radius:8px;background:var(--card);border:1px solid var(--line);cursor:pointer;font-size:13px;color:var(--txt)}
+.tab.active{background:var(--acc2);border-color:var(--acc2);color:#022;font-weight:600}
+.controls{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;align-items:center}
+input,select{background:var(--card);border:1px solid var(--line);color:var(--txt);padding:10px 12px;border-radius:8px;font-size:14px;font-family:inherit}
+#q{flex:1;min-width:220px}
+.btn{background:var(--acc2);color:#022;border:none;padding:9px 14px;border-radius:8px;cursor:pointer;font-weight:600;font-size:13px;font-family:inherit}
+.btn.ghost{background:var(--card);color:var(--txt);border:1px solid var(--line);font-weight:500}
+.btn.sm{padding:5px 9px;font-size:12px}
+main{padding:16px 18px 80px;max-width:1200px;margin:0 auto}
+.count{color:var(--mut);font-size:13px;margin:6px 2px 12px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{position:sticky;top:0;color:var(--mut);font-size:12px;font-weight:600;background:var(--bg);cursor:pointer;white-space:nowrap}
+th.num,td.num{text-align:right;font-variant-numeric:tabular-nums}
+tr:hover td{background:var(--card)}
+.code{font-family:ui-monospace,monospace;color:var(--acc);font-size:13px;white-space:nowrap}
+.cat{display:inline-block;font-size:11px;color:var(--mut);background:var(--card2);padding:2px 7px;border-radius:5px;margin-top:3px}
+.flag{color:var(--warn);cursor:help;font-size:12px}
+.fee{font-weight:600}
+.fee.editable{cursor:text;border-bottom:1px dashed transparent;padding:1px 3px;border-radius:3px}
+.fee.editable:hover{background:var(--card2);border-bottom-color:var(--mut)}
+.fee.edited{color:var(--ok)}
+.chk{width:16px;height:16px;cursor:pointer;accent-color:var(--acc2)}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 16px}
+.chip{background:var(--card);border:1px solid var(--line);padding:7px 12px;border-radius:20px;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:7px}
+.chip.active{background:var(--acc2);color:#022;border-color:var(--acc2);font-weight:600}
+.chip .x{color:var(--danger);font-weight:700;font-size:14px;opacity:.7}
+.chip .x:hover{opacity:1}
+.bar{position:fixed;bottom:0;left:0;right:0;background:var(--card2);border-top:1px solid var(--line);padding:12px 18px;display:none;align-items:center;gap:14px;z-index:30;flex-wrap:wrap}
+.bar.show{display:flex}
+.bar .tot{font-variant-numeric:tabular-nums}
+.empty{text-align:center;color:var(--mut);padding:50px 20px}
+.modal{position:fixed;inset:0;background:#000a;display:none;align-items:center;justify-content:center;z-index:40;padding:20px}
+.modal.show{display:flex}
+.mbox{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px;max-width:480px;width:100%}
+.mbox h3{margin:0 0 14px}
+.note{font-size:12px;color:var(--mut);background:var(--card2);padding:10px 12px;border-radius:8px;margin-bottom:12px;line-height:1.5}
+.gtot{font-size:12px;color:var(--mut)}
+label.f{font-size:12px;color:var(--mut)}
+@media print{header,.bar,.chk,th:first-child,td:first-child,.tabs,.controls{display:none}body{background:#fff;color:#000}}
 </style>
 </head>
 <body>
-
 <header>
-  <div class="header-inner">
-    <h1>🏥 Mongkut Rayong Doctor Fee Search</h1>
-    <div class="subtitle">DF + ICD-10 TM Code — ศัลยแพทย์ อัตราค่าแพทย์ 2568 OR</div>
-    <div class="search-row">
-      <input type="text" id="searchInput" placeholder="Search procedure… e.g. appendectomy, EGD, cholecystectomy" autofocus autocomplete="off" spellcheck="false">
+  <div class="htop">
+    <div>
+      <h1>ค้นหา DF — Mongkut Rayong Hospital</h1>
+      <div class="sub">Doctor Fee ตามสิทธิ์ · <span id="recCount"></span> รายการ</div>
     </div>
-    <div class="filter-row">
-      <select id="catSelect"><option value="">All Categories</option></select>
-      <button class="fav-filter-btn" id="favFilterBtn">⭐ Favourites</button>
+    <div class="tabs">
+      <div class="tab active" data-view="all" onclick="setView('all')">รายการทั้งหมด</div>
+      <div class="tab" data-view="groups" onclick="setView('groups')">กลุ่มของฉัน</div>
     </div>
+  </div>
+  <div class="controls" id="searchControls">
+    <input id="q" placeholder="🔍 ค้นหาด้วยชื่อหัตถการ หรือรหัส ICD-10-TM..." oninput="render()">
+    <select id="cat" onchange="render()"><option value="">— ทุกหมวด —</option></select>
+    <select id="sortBy" onchange="render()">
+      <option value="name">เรียงตามชื่อ</option>
+      <option value="c1">เรียงตามสิทธิ์1,2,3 แพทย์แนะนำ</option>
+      <option value="c2">เรียงตามสิทธิ์1,2,3 รพ.</option>
+      <option value="c3">เรียงตามสิทธิ์4/6</option>
+      <option value="code">เรียงตามรหัส</option>
+    </select>
+    <label class="f"><input type="checkbox" id="onlyClean" onchange="render()"> ซ่อนแถวที่ OCR สงสัย</label>
   </div>
 </header>
-
 <main>
-  <div class="stats-bar">
-    <span><span class="result-count" id="resultCount">0</span> procedures found</span>
-    <span>Total in DB: <span id="totalCount">0</span></span>
-  </div>
-  <div class="results" id="results"></div>
+  <div id="groupChips" class="chips"></div>
+  <div class="count" id="count"></div>
+  <div id="tableWrap"></div>
 </main>
 
+<div class="bar" id="selBar">
+  <strong><span id="selN">0</span> รายการที่เลือก</strong>
+  <span class="tot">รวม: ส.1,2,3 แพทย์ <b id="t1">0</b> · ส.1,2,3 รพ. <b id="t2">0</b> · ส.4/6 <b id="t3">0</b></span>
+  <button class="btn" onclick="openGroupModal()">+ สร้างกลุ่ม / Shortcut</button>
+  <button class="btn ghost sm" onclick="clearSel()">ยกเลิกการเลือก</button>
+</div>
+
+<div class="modal" id="groupModal">
+  <div class="mbox">
+    <h3>สร้างกลุ่ม DF ใหม่</h3>
+    <div class="note">รวมหัตถการที่เลือกเป็นกลุ่ม (เช่น แพ็กเกจผ่าตัด) เพื่อเรียกดูและดูยอดรวมค่าธรรมเนียมได้รวดเร็ว กลุ่มจะถูกบันทึกไว้ในเครื่องนี้</div>
+    <label class="f">ชื่อกลุ่ม</label>
+    <input id="gName" style="width:100%;margin:6px 0 16px" placeholder="เช่น Whipple package, ผ่าตัดต่อมไทรอยด์ครบชุด">
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button class="btn ghost" onclick="closeGroupModal()">ยกเลิก</button>
+      <button class="btn" onclick="saveGroup()">บันทึกกลุ่ม</button>
+    </div>
+  </div>
+</div>
+
 <script>
-const DB = [
-  // ===== OESOPHAGUS (rows 6-18) =====
-  {code:"384-19-03", name:"Oesophagogastrectomy and anastomosis of oesophagus to stomach", fee:25000, cat:"Oesophagus"},
-  {code:"384-19-06", name:"Oesophagogastrectomy and anastomosis of pharynx to stomach", fee:30000, cat:"Oesophagus"},
-  {code:"384-19-07", name:"Oesophagectomy and interposition of jejunum", fee:30000, cat:"Oesophagus"},
-  {code:"384-19-08", name:"Oesophagectomy and interposition of colon", fee:30000, cat:"Oesophagus"},
-  {code:"384-19-02", name:"Partial oesophagectomy and end to end anastomosis of oesophagus", fee:20000, cat:"Oesophagus"},
-  {code:"384-19-01", name:"Excision of lesion of oesophagus", fee:10000, cat:"Oesophagus"},
-  {code:"384-05-02", name:"Bypass of oesophagus by anastomosis of oesophagus to oesophagus", fee:14000, cat:"Oesophagus"},
-  {code:"384-05-03", name:"Bypass of oesophagus by anastomosis of oesophagus to stomach", fee:14000, cat:"Oesophagus"},
-  {code:"384-05-06", name:"Bypass of oesophagus by interposition of jejunum", fee:14000, cat:"Oesophagus"},
-  {code:"384-05-08", name:"Bypass of oesophagus by interposition of microvascularly attached colon", fee:16000, cat:"Oesophagus"},
-  {code:"384-55-01", name:"Revision of anastomosis of oesophagus", fee:16000, cat:"Oesophagus"},
-  {code:"384-54-02", name:"Removal of bypass of oesophagus", fee:14000, cat:"Oesophagus"},
-  {code:"384-54-03", name:"Closure of bypass of oesophagus", fee:14000, cat:"Oesophagus"},
+const DATA = [{"code": "222-14-00", "name": "Dilatation of submandibular salivary duct", "category": null, "c1": 800, "c2": 700, "c3": 400, "suspect": false}, {"code": "223-14-00", "name": "Sublingual dilation of submandibular salivary duct", "category": null, "c1": 800, "c2": 700, "c3": 400, "suspect": false}, {"code": "195-50-04", "name": "Manipulative removal of calculus from salivary duct", "category": null, "c1": 2000, "c2": 1750, "c3": 1000, "suspect": false}, {"code": "222-50-04", "name": "Manipulative removal of calculus from salivary duct", "category": null, "c1": 2000, "c2": 1750, "c3": 1000, "suspect": false}, {"code": "161-19-00", "name": "Enucleation of dental cyst of jaw", "category": "TEETH / GUM", "c1": 12800, "c2": 11200, "c3": 7200, "suspect": false}, {"code": "215-19-06", "name": "Suprahyoid radical neck dissection", "category": "TEETH / GUM", "c1": 12000, "c2": 10500, "c3": 67750, "suspect": true}, {"code": "215-19-07", "name": "Radical neck dissection", "category": "TEETH / GUM", "c1": 16000, "c2": 14000, "c3": 9000, "suspect": false}, {"code": "216-19-02", "name": "Biopsy of cervical lymph nodes (LA)", "category": "TEETH / GUM", "c1": 800, "c2": 700, "c3": 400, "suspect": false}, {"code": "216-16-00", "name": "Drainage of lesion of cervical lymph node (LA)", "category": "TEETH / GUM", "c1": 800, "c2": 700, "c3": 400, "suspect": false}, {"code": "216-19-02", "name": "Biopsy of cervical lymph nodes (LA)", "category": "TEETH / GUM", "c1": 800, "c2": 700, "c3": 400, "suspect": false}, {"code": "216-19-06", "name": "Biopsy of cervical lymph nodes (GA)", "category": "TEETH / GUM", "c1": 2400, "c2": 1200, "c3": 600, "suspect": false}, {"code": "216-16-00", "name": "Drainage of lesion of cervical lymph node (GA)", "category": "TEETH / GUM", "c1": 2400, "c2": 2100, "c3": 1200, "suspect": false}, {"code": "204-19-03", "name": "Excision of branchial cyst or fistula", "category": "TEETH / GUM", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "221-19-03", "name": "Excision of thyroglossal cyst", "category": "THYROID AND PARATHYROID GLANDS", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "219-19-05", "name": "Total thyroidectomy", "category": "THYROID AND PARATHYROID GLANDS", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "219-19-03", "name": "Isthmectomy of thyroid gland", "category": "THYROID AND PARATHYROID GLANDS", "c1": 7200, "c2": 6300, "c3": 4050, "suspect": false}, {"code": "219-19-04", "name": "Thyroid Lobectomy", "category": "THYROID AND PARATHYROID GLANDS", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "219-19-06", "name": "Retrosternal Thyroidectomy", "category": "THYROID AND PARATHYROID GLANDS", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "220-19-05", "name": "Complete parathyroidectomy", "category": "THYROID AND PARATHYROID GLANDS", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "623-51-01", "name": "Repair, flexor muscle or tendon at forearm; primary,", "category": "FOREARM", "c1": 4400, "c2": 3850, "c3": 2200, "suspect": false}, {"code": "623-51-02", "name": "Repair, flexor muscle or tendon at forearm", "category": "FOREARM", "c1": 4400, "c2": 3850, "c3": 2200, "suspect": false}, {"code": "622-51-01", "name": "Repair, extensor muscle or tendon at forearm", "category": "FOREARM", "c1": 3600, "c2": 1800, "c3": 900, "suspect": false}, {"code": "622-51-02", "name": "Repair, extensor muscle or tendon at forearm", "category": "FOREARM", "c1": 4400, "c2": 3850, "c3": 1100, "suspect": false}, {"code": "623-68-00", "name": "Lengthening flexor tendon at forearm and/or wrist", "category": "FOREARM", "c1": 4800, "c2": 4200, "c3": 2400, "suspect": false}, {"code": "623-67-00", "name": "Shortening flexor tendon at forearm and/or wrist", "category": "FOREARM", "c1": 4800, "c2": 4200, "c3": 2400, "suspect": false}, {"code": "622-68-00", "name": "Lengthening of extensor tendon at forearm and/or", "category": "FOREARM", "c1": 4800, "c2": 4200, "c3": 2400, "suspect": true}, {"code": "622-67-00", "name": "Shortening of extensor tendon at forearm and/or wrist", "category": "FOREARM", "c1": 4800, "c2": 4200, "c3": 2400, "suspect": false}, {"code": "623-27-00", "name": "Tenotomy, open, flexor tendon at forearm and/or wrist", "category": "FOREARM", "c1": 4800, "c2": 4200, "c3": 2400, "suspect": false}, {"code": "622-27-00", "name": "Tenotomy, open, extensor tendon at forearm and/or", "category": "FOREARM", "c1": 4800, "c2": 2400, "c3": 1200, "suspect": false}, {"code": "622-49-00", "name": "Tenolysis, extensor tendon at forearm and/or wrist", "category": "FOREARM", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "633-65-01", "name": "Tenodesis at wrist; flexor tendon of fingers", "category": "FOREARM", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "632-65-01", "name": "Tenodesis at wrist; extensor tendons of fingers", "category": "FOREARM", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "623-59-00", "name": "Tendon transplantation or transfer, flexor tendons at", "category": "FOREARM", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "622-59-00", "name": "Tendon transplantation or transfer, extensor tendon at", "category": "FOREARM", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "616-27-01", "name": "Fasciotomy, palmar, for Dupuytren's contracture;", "category": "FOREARM", "c1": 7200, "c2": 6300, "c3": 4050, "suspect": false}, {"code": "730-27-00", "name": "Arthrotomy with synovial biopsy; carpometacarpal", "category": "FOREARM", "c1": 4800, "c2": 4200, "c3": 2400, "suspect": false}, {"code": "730-27-01", "name": "Arthrotomy with synovial biopsy", "category": "FOREARM", "c1": 4800, "c2": 4200, "c3": 2400, "suspect": true}, {"code": "730-27-02", "name": "Arthrotomy with synovial biopsy; Interphalangeal", "category": "FOREARM", "c1": 4400, "c2": 3850, "c3": 2200, "suspect": false}, {"code": "616-19-01", "name": "Excision, tumor or vascular malformation, hand or", "category": "FOREARM", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "616-19-03", "name": "Radical resection of tumor (e.g., malignant", "category": "FOREARM", "c1": 12800, "c2": 11200, "c3": 7200, "suspect": false}, {"code": "616-19-63", "name": "Fasciectomy, palmar only, with or without Z-plasty,", "category": "FOREARM", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "616-19-01", "name": "Partial palmar excision with release of single including", "category": "FOREARM", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "730-19-03", "name": "Synovectomy, carpometacarpal joint", "category": "FOREARM", "c1": 8000, "c2": 7000, "c3": 4500, "suspect": false}, {"code": "730-19-09", "name": "Synovectomy, metacarpophalangeal joint intrinsic", "category": "FOREARM", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "730-19-05", "name": "Synovectomy, proximal interphalangeal joint,", "category": "FOREARM", "c1": 7200, "c2": 6300, "c3": 4050, "suspect": false}, {"code": "730-19-03", "name": "Synovectomy tendon sheath, radical", "category": "FOREARM", "c1": 7200, "c2": 6300, "c3": 4050, "suspect": false}, {"code": "635-19-03", "name": "Excision of lesion of tendon sheath or capsule (e.g..", "category": "FOREARM", "c1": 3600, "c2": 3150, "c3": 1800, "suspect": false}, {"code": "633-19-01", "name": "Excision of tendon, palm, flexor, single each", "category": "FOREARM", "c1": 3600, "c2": 3150, "c3": 900, "suspect": false}, {"code": "633-19-03", "name": "Excision of tendon, finger, flexor", "category": "FOREARM", "c1": 4400, "c2": 3850, "c3": 2200, "suspect": false}, {"code": "703-19-13", "name": "Excision or curettage of bone cyst or benign tumor", "category": "FOREARM", "c1": 4800, "c2": 4200, "c3": 2400, "suspect": false}, {"code": "703-19-13", "name": "Excision or curettage of bone cyst or benign tumor", "category": "FOREARM", "c1": 5600, "c2": 4900, "c3": 350, "suspect": true}, {"code": "703-19-03", "name": "Excision or curettage of bone cyst or benign tumor", "category": "FOREARM", "c1": 4800, "c2": 4200, "c3": 2400, "suspect": false}, {"code": "703-19-69", "name": "Excision or curettage of bone cyst or benign tumor", "category": "FOREARM", "c1": 4800, "c2": 4200, "c3": 2400, "suspect": false}, {"code": "703-19-16", "name": "Excision or curettage of bone cyst or benign tumor", "category": "FOREARM", "c1": 4800, "c2": 4200, "c3": 2400, "suspect": false}, {"code": "703-19-06", "name": "Radical resection (ostectomy) for tumor, proximal or", "category": "FOREARM", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": true}, {"code": "703-19-16", "name": "Radical resection (ostectomy) for tumor, proximal or", "category": "FOREARM", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "706-19-07", "name": "Radical resection (ostectomy) for tumor, distal", "category": "FOREARM", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "074-50-00", "name": "Removal of implant from finger or hand", "category": "FOREARM", "c1": 4800, "c2": 4200, "c3": 2400, "suspect": false}, {"code": "633-51-02", "name": "Flexor tendon repair or advancement, single, not in\"", "category": "FOREARM", "c1": 5600, "c2": 4900, "c3": 3150, "suspect": false}, {"code": "633-51-03", "name": "Flexor tendon repair or advancement, single, in\" No", "category": "FOREARM", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "633-51-04", "name": "Flexor tendon repair or advancement, single, in\" No", "category": "FOREARM", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "633-51-13", "name": "Flexor tendon repair or advancement, single, in \" No", "category": "FOREARM", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "633-51-05", "name": "Profundus tendon repair or advancement, with intact", "category": "FOREARM", "c1": 5600, "c2": 4900, "c3": 3150, "suspect": false}, {"code": "633-51-14", "name": "Profundus tendon repair or advancement, with intact", "category": "FOREARM", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "633-51-06", "name": "Profundus tendon repair or advancement, with intact", "category": "FOREARM", "c1": 8000, "c2": 7000, "c3": 4500, "suspect": false}, {"code": "633-19-71", "name": "Flexor tendon excision, implantation of plastic tube or", "category": "FOREARM", "c1": 8000, "c2": 7000, "c3": 4500, "suspect": false}, {"code": "633-50-00", "name": "Removal of tube or rod and insertion of flexor tendon", "category": "FOREARM", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "632-51-04", "name": "Extensor tendon repair, dorsum of hand, single,", "category": "FOREARM", "c1": 4400, "c2": 3850, "c3": 2200, "suspect": false}, {"code": "632-51-64", "name": "Extensor tendon repair, dorsum of hand, single,", "category": "FOREARM", "c1": 8000, "c2": 7000, "c3": 4500, "suspect": false}, {"code": "632-19-43", "name": "Extensor tendon excision, implantation of plastic tube", "category": "FOREARM", "c1": 8000, "c2": 7000, "c3": 4500, "suspect": false}, {"code": "632-50-63", "name": "Removal of tube or rod and insertion of extensor", "category": "FOREARM", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "632-51-04", "name": "Extensor tendon repair, dorsum of finger single,", "category": "FOREARM", "c1": 4800, "c2": 4200, "c3": 2400, "suspect": false}, {"code": "632-51-64", "name": "Extensor tendon repair, dorsum of finger single,", "category": "FOREARM", "c1": 8000, "c2": 7000, "c3": 4500, "suspect": false}, {"code": "632-51-04", "name": "Extensor tendon repair, central slip repair, secondary", "category": "FOREARM", "c1": 8000, "c2": 7000, "c3": 4500, "suspect": false}, {"code": "632-28-65", "name": "Extensor tendon repair, central slip repair, secondary", "category": "FOREARM", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "632-26-51", "name": "Extensor tendon repair, distal insertion (\"mallet", "category": "FOREARM", "c1": 5600, "c2": 4900, "c3": 3150, "suspect": false}, {"code": "632-51-04", "name": "Extensor tendon repair, distal insertion (\"mallet", "category": "FOREARM", "c1": 5600, "c2": 4900, "c3": 3150, "suspect": false}, {"code": "632-51-64", "name": "Extensor tendon repair, distal insertion (\"mallet", "category": "FOREARM", "c1": 8000, "c2": 7000, "c3": 4500, "suspect": false}, {"code": "632-53-05", "name": "Extensor tendon realignment, hand", "category": "FOREARM", "c1": 5600, "c2": 4900, "c3": 3150, "suspect": false}, {"code": "633-49-00", "name": "Tenolysis, simple, flexor tendon; palm or finger,", "category": "FOREARM", "c1": 5600, "c2": 4900, "c3": 3150, "suspect": false}, {"code": "633-49-05", "name": "Tenolysis, complex, flexor tendon; palm or finger,", "category": "FOREARM", "c1": 7200, "c2": 6300, "c3": 4050, "suspect": false}, {"code": "632-49-05", "name": "Tenolysis, extensor tendon, dorsum of hand or finger,", "category": "FOREARM", "c1": 5600, "c2": 3150, "c3": 1400, "suspect": false}, {"code": "632-49-05", "name": "Tenolysis, complex, extensor tendon, dorsum of hand", "category": "FOREARM", "c1": 6400, "c2": 5600, "c3": 3600, "suspect": true}, {"code": "633-27-01", "name": "Tenotomy, flexor, single, palm, open, each", "category": "FOREARM", "c1": 3600, "c2": 3150, "c3": 1800, "suspect": false}, {"code": "633-27-02", "name": "Tenotomy, flexor, single, finger, open, each", "category": "FOREARM", "c1": 4800, "c2": 4200, "c3": 2400, "suspect": false}, {"code": "632-27-05", "name": "Tenotomy, extensor, hand or finger, single, open,", "category": "FOREARM", "c1": 3200, "c2": 2800, "c3": 1600, "suspect": false}, {"code": "633-65-02", "name": "Tenodesis; for proximal interphalangeal joint", "category": "FOREARM", "c1": 7200, "c2": 6300, "c3": 4050, "suspect": false}, {"code": "633-65-00", "name": "Tenodesis; for distal joint stabilization", "category": "FOREARM", "c1": 4800, "c2": 4200, "c3": 2400, "suspect": false}, {"code": "632-68-03", "name": "Tendon lengthening, extensor, hand or finger, single,", "category": "FOREARM", "c1": 4800, "c2": 4200, "c3": 2400, "suspect": false}, {"code": "632-67-02", "name": "Tendon shortening, extensor, hand or finger, single,", "category": "FOREARM", "c1": 4800, "c2": 4200, "c3": 2400, "suspect": false}, {"code": "633-67-01", "name": "Tendon shortening, flexor, hand or finger, single, each", "category": "FOREARM", "c1": 5600, "c2": 4900, "c3": 3150, "suspect": true}, {"code": "633-59-02", "name": "Tendon transferortransplant, carpometacarpal area", "category": "FOREARM", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "633-59-12", "name": "Tendon transfer or transplant, carpometacarpal area", "category": "FOREARM", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "633-59-03", "name": "Tendon transfer or transplant, palmar, single, each", "category": "FOREARM", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "633-59-13", "name": "Tendon transferortransplant, palmar, single, each", "category": "FOREARM", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "633-59-00", "name": "Opponens plasty:; sublimis tendon transfer type", "category": "FOREARM", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "633-59-11", "name": "Opponens plasty; Tendon transfer with graft", "category": "FOREARM", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "627-59-01", "name": "Opponens plasty; Hypothenar muscle transfer", "category": "FOREARM", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "627-59-03", "name": "Opponens plasty; Other methods", "category": "FOREARM", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "633-59-04", "name": "Tendon transfer to restore intrinsic function; ring and", "category": "FOREARM", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "633-59-05", "name": "Tendon transfer to restore intrinsic furnction; Ail four", "category": "FOREARM", "c1": 12800, "c2": 11200, "c3": 7200, "suspect": false}, {"code": "635-47-09", "name": "Tendon pulley reconstruction; with local tissue", "category": "FOREARM", "c1": 5600, "c2": 4900, "c3": 3150, "suspect": false}, {"code": "635-47-69", "name": "Tendon pulley reconstruction; With tendon prosthesis", "category": "FOREARM", "c1": 8000, "c2": 7000, "c3": 4500, "suspect": false}, {"code": "635-47-69", "name": "Tendonpulleyreconstruction; Withtendonorfascial", "category": "FOREARM", "c1": 8000, "c2": 7000, "c3": 4500, "suspect": false}, {"code": "626-49-00", "name": "Thenar muscle release for thumb contracture", "category": "FOREARM", "c1": 8000, "c2": 7000, "c3": 4500, "suspect": false}, {"code": "628-59-04", "name": "Cross intrinsic transfer", "category": "FOREARM", "c1": 8000, "c2": 7000, "c3": 4500, "suspect": false}, {"code": "735-65-14", "name": "Capsulodesis for M-P joint stabilization; Two digits", "category": "FOREARM", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "735-65-15", "name": "Capsulodesis for M-P joint stabilization; Three or four", "category": "FOREARM", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "735-19-03", "name": "Capsulectomy or capsulotomy for contracture;", "category": "FOREARM", "c1": 8000, "c2": 7000, "c3": 4500, "suspect": false}, {"code": "735-19-05", "name": "Capsulodesis for M-P joint stabilization", "category": "FOREARM", "c1": 7200, "c2": 6300, "c3": 4050, "suspect": true}, {"code": "736-51-12", "name": "Primary repair of collateral ligament, with tendon or", "category": "FOREARM", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "736-51-11", "name": "Primary repair of collateral ligament, with local tissue", "category": "FOREARM", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "736-47-09", "name": "Reconstruction, collateral ligament, interphalangeal", "category": "FOREARM", "c1": 7200, "c2": 6300, "c3": 4050, "suspect": false}, {"code": "723-51-09", "name": "Repair and reconstruction, finger, volar plate", "category": "FOREARM", "c1": 8000, "c2": 7000, "c3": 4500, "suspect": false}, {"code": "606-15-00", "name": "Repair of syndactyly (web finger) each web space;", "category": "FOREARM", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "702-19-09", "name": "Osteotomy for correction of deformity; metacarpal", "category": "FOREARM", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "703-19-05", "name": "Osteotomy for correction of deformity; phalanx of", "category": "FOREARM", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "702-68-05", "name": "Osteotomy for lengthening of metacarpal or phalanx", "category": "FOREARM", "c1": 12800, "c2": 11200, "c3": 7200, "suspect": false}, {"code": "702-28-11", "name": "Bone graft, metacarpal (includes obtaining graft)", "category": "FOREARM", "c1": 12800, "c2": 11200, "c3": 7200, "suspect": false}, {"code": "703-28-05", "name": "Bone graft, Phalanx", "category": "FOREARM", "c1": 12800, "c2": 11200, "c3": 7200, "suspect": false}, {"code": "074-51-02", "name": "Repair cleft hand", "category": "FOREARM", "c1": 16000, "c2": 14000, "c3": 9000, "suspect": false}, {"code": "738-51-01", "name": "Repair bifid digit", "category": "FOREARM", "c1": 16000, "c2": 14000, "c3": 9000, "suspect": false}, {"code": "738-47-09", "name": "Reconstruction of supernumerary digit, soft tissueand", "category": "FOREARM", "c1": 5600, "c2": 4900, "c3": 3150, "suspect": false}, {"code": "738-51-01", "name": "Repair macrodactylia", "category": "FOREARM", "c1": 8000, "c2": 7000, "c3": 4500, "suspect": false}, {"code": "628-51-01", "name": "Repair, intrinsic muscles of hand (specify)", "category": "FOREARM", "c1": 7200, "c2": 6300, "c3": 4050, "suspect": true}, {"code": "628-49-00", "name": "Release, intrinsic muscles of hand (specify)", "category": "FOREARM", "c1": 5600, "c2": 3150, "c3": 1400, "suspect": false}, {"code": "606-19-02", "name": "Excision of constriction ring of finger, with multiple", "category": "FOREARM", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "606-49-01", "name": "Release of scar contracture, flexor or extensor, with", "category": "FOREARM", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "702-51-00", "name": "Closed treatment of metacarpal fracture and/or", "category": "FOREARM", "c1": 3200, "c2": 2800, "c3": 1600, "suspect": false}, {"code": "702-65-01", "name": "Closed treatment of metacarpal fracture and /or", "category": "FOREARM", "c1": 3200, "c2": 2800, "c3": 1600, "suspect": false}, {"code": "702-65-56", "name": "Percutaneous skeletal fixation of metacarpal fracture,", "category": "FOREARM", "c1": 8000, "c2": 7000, "c3": 4500, "suspect": false}, {"code": "702-51-02", "name": "Open treatment of metacarpal fracture, single, without", "category": "FOREARM", "c1": 8000, "c2": 7000, "c3": 4500, "suspect": false}, {"code": "702-65-59", "name": "Open treatment of metacarpal fracture, single, with", "category": "FOREARM", "c1": 8000, "c2": 7000, "c3": 4500, "suspect": false}, {"code": "721-48-00", "name": "Closed treatment of carpometacarpal dislocation,", "category": "FOREARM", "c1": 3200, "c2": 2800, "c3": 1600, "suspect": false}, {"code": "721-51-01", "name": "Closed treatment of carpometacarpal fracture", "category": "FOREARM", "c1": 4400, "c2": 3850, "c3": 2200, "suspect": false}, {"code": "721-65-56", "name": "Percutaneous skeletal fixation of carpometacarpal", "category": "FOREARM", "c1": 4800, "c2": 4200, "c3": 2400, "suspect": false}, {"code": "721-51-02", "name": "Open treatment of carpometacarpal fracture", "category": "FOREARM", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "722-65-56", "name": "Percutaneous skeletal fixation of", "category": "FOREARM", "c1": 4800, "c2": 4200, "c3": 2400, "suspect": false}, {"code": "722-65-55", "name": "Open treatment of metacarpophalangeal dislocation,", "category": "FOREARM", "c1": 7200, "c2": 6300, "c3": 4050, "suspect": false}, {"code": "703-51-99", "name": "Open treatment of phalangeal shaft fracture, proximal", "category": "FOREARM", "c1": 5600, "c2": 4900, "c3": 3150, "suspect": false}, {"code": "722-51-99", "name": "Open treatment of articular fracture, involving", "category": "FOREARM", "c1": 5600, "c2": 4900, "c3": 3150, "suspect": false}, {"code": "723-51-99", "name": "Open treatment of articular fracture, involving", "category": "FOREARM", "c1": 4800, "c2": 4200, "c3": 2400, "suspect": false}, {"code": "706-51-99", "name": "Open treatment ofdistal phalangeal fracture, finger or", "category": "FOREARM", "c1": 4800, "c2": 4200, "c3": 2400, "suspect": false}, {"code": "723-48-99", "name": "Open treatment of interphalangeal joint dislocation,", "category": "FOREARM", "c1": 4800, "c2": 4200, "c3": 2400, "suspect": false}, {"code": "737-23-00", "name": "Fusion in opposition, thumb, with autogenous graft", "category": "FOREARM", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "721-23-00", "name": "Arthrodesis, carpometacarpal joint, thumb, without", "category": "FOREARM", "c1": 8000, "c2": 7000, "c3": 4500, "suspect": false}, {"code": "721-23-10", "name": "Arthrodesis, carpometacarpal joint, thumb, with", "category": "FOREARM", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "721-23-01", "name": "Arthrodesis, carpometacarpal joint, digits, otherthan", "category": "FOREARM", "c1": 8000, "c2": 7000, "c3": 2000, "suspect": false}, {"code": "721-23-11", "name": "Arthrodesis, carpometacarpal joint, digits, otherthan", "category": "FOREARM", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "722-23-00", "name": "Arthrodesis, metacarpophalangeal joint, with or", "category": "FOREARM", "c1": 8000, "c2": 7000, "c3": 4500, "suspect": false}, {"code": "722-23-10", "name": "Arthrodesis, metacarpophalangeal joint, with or", "category": "FOREARM", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "723-23-00", "name": "Arthrodesis, interphalangeal joint, with or without", "category": "FOREARM", "c1": 5600, "c2": 4900, "c3": 3150, "suspect": false}, {"code": "723-23-01", "name": "Arthrodesis, Each additional interphalangeal joint", "category": "FOREARM", "c1": 2000, "c2": 1000, "c3": 500, "suspect": false}, {"code": "723-23-10", "name": "Arthrodesis, interphalangeal joint, with or without", "category": "FOREARM", "c1": 8000, "c2": 7000, "c3": 4500, "suspect": false}, {"code": "723-23-11", "name": "Arthrodesis, interphalangeal joint, with or without", "category": "FOREARM", "c1": 2400, "c2": 2100, "c3": 1200, "suspect": false}, {"code": "642-02-00", "name": "Amputation, metacarpal, with finger or thumb (Ray)", "category": "FOREARM", "c1": 8000, "c2": 7000, "c3": 4500, "suspect": false}, {"code": "737-02-00", "name": "Amputation, thumb, primary or secondary, any joint", "category": "FOREARM", "c1": 5600, "c2": 4900, "c3": 3150, "suspect": false}, {"code": "737-02-01", "name": "Amputation, thumb, primary or secondary, any joint", "category": "FOREARM", "c1": 7200, "c2": 6300, "c3": 4050, "suspect": false}, {"code": "738-02-00", "name": "Amputation, finger, primary or secondary, any joint", "category": "FOREARM", "c1": 5600, "c2": 4900, "c3": 3150, "suspect": false}, {"code": "738-02-01", "name": "Amputation, finger, primary or secondary, any joint", "category": "FOREARM", "c1": 7200, "c2": 6300, "c3": 4050, "suspect": false}, {"code": "302-19-06", "name": "Radical or modified radical mastectomy", "category": "BREAST", "c1": 16000, "c2": 14000, "c3": 9000, "suspect": false}, {"code": "302-19-04", "name": "Subcutaneous mastectomy (for gynaecomastia)", "category": "BREAST", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "302-19-02", "name": "Percutaneous biopsy of lesion of breast", "category": "BREAST", "c1": 800, "c2": 700, "c3": 400, "suspect": false}, {"code": "302-16-02", "name": "Drainage of lesion of breast", "category": "BREAST", "c1": 800, "c2": 700, "c3": 400, "suspect": false}, {"code": "305-19-03", "name": "Excision of mammillary duct", "category": "BREAST", "c1": 5600, "c2": 4900, "c3": 3150, "suspect": false}, {"code": "305-19-03", "name": "Microdochectomy", "category": "BREAST", "c1": 5600, "c2": 4900, "c3": 39150, "suspect": true}, {"code": "302-16-01", "name": "Aspiration oflesionofbreast", "category": "BREAST", "c1": 800, "c2": 700, "c3": 400, "suspect": false}, {"code": "300-47-05", "name": "Thoracoplasty", "category": "CHEST WALL", "c1": 16000, "c2": 14000, "c3": 16000, "suspect": true}, {"code": "300-19-03", "name": "Excision of lesion of chest wall without reconstruction", "category": "CHEST WALL", "c1": 8000, "c2": 7000, "c3": 8000, "suspect": true}, {"code": "300-19-09", "name": "Excision of lesion of chest wall with reconstruction of", "category": "CHEST WALL", "c1": 32000, "c2": 28000, "c3": 32000, "suspect": true}, {"code": "380-19-02", "name": "Exploratory median sternotomy with biopsy", "category": "CHEST WALL", "c1": 111200, "c2": 9800, "c3": 112200, "suspect": true}, {"code": "382-51-01", "name": "Repair of rupture of diaphragm, transthoracic (Right)", "category": "CHEST WALL", "c1": 16000, "c2": 14000, "c3": 16000, "suspect": true}, {"code": "383-51-01", "name": "Repair of rupture of diaphragm, transthoracic (Left)", "category": "CHEST WALL", "c1": 16000, "c2": 14000, "c3": 16000, "suspect": true}, {"code": "382-28-41", "name": "Insertion of prosthesis, repair of diaphragm,", "category": "CHEST WALL", "c1": 16000, "c2": 14000, "c3": 16000, "suspect": true}, {"code": "383-28-41", "name": "Insertion of prosthesis, repair of diaphragm,", "category": "CHEST WALL", "c1": 16000, "c2": 14000, "c3": 16000, "suspect": true}, {"code": "382-47-01", "name": "Plication of diaphragm, transthoracic (Right)", "category": "CHEST WALL", "c1": 16000, "c2": 14000, "c3": 16000, "suspect": true}, {"code": "383-47-01", "name": "Plication of diaphragm, transthoracic (Left)", "category": "CHEST WALL", "c1": 16000, "c2": 14000, "c3": 16000, "suspect": true}, {"code": "382-38-01", "name": "Closure of fistula of diaphragm, transthoracic (Right)", "category": "CHEST WALL", "c1": 16000, "c2": 14000, "c3": 16000, "suspect": true}, {"code": "383-38-01", "name": "Closure of fistula of diaphragm, transthoracic (Left)", "category": "CHEST WALL", "c1": 16000, "c2": 14000, "c3": 16000, "suspect": true}, {"code": "382-51-03", "name": "Repair of congenital diaphragmatic hernia,", "category": "CHEST WALL", "c1": 16000, "c2": 14000, "c3": 16000, "suspect": true}, {"code": "383-51-03", "name": "Repair of congenital diaphragmatic hernia,", "category": "CHEST WALL", "c1": 16000, "c2": 14000, "c3": 16000, "suspect": true}, {"code": "382-19-01", "name": "Excision of lesion of diaphragm, transthoracic(Right)", "category": "CHEST WALL", "c1": 16000, "c2": 14000, "c3": 16000, "suspect": true}, {"code": "383-19-01", "name": "Excision of lesion of diaphragm, transthoracic (Left)", "category": "CHEST WALL", "c1": 16000, "c2": 14000, "c3": 16000, "suspect": true}, {"code": "356-19-01", "name": "Open excision of lesion of trachea", "category": "TRACHEA", "c1": 11200, "c2": 9800, "c3": 11200, "suspect": true}, {"code": "038-18-01", "name": "Bronchoscopy", "category": "BRONCHUS / LUNGS / PLEURA", "c1": 2400, "c2": 2100, "c3": 2400, "suspect": true}, {"code": "367-19-03", "name": "Lobectomy of lung", "category": "BRONCHUS / LUNGS / PLEURA", "c1": 16000, "c2": 4000, "c3": 18000, "suspect": true}, {"code": "367-19-02", "name": "Excision of segment oflung", "category": "BRONCHUS / LUNGS / PLEURA", "c1": 16000, "c2": 14000, "c3": 16000, "suspect": true}, {"code": "367-19-05", "name": "Lung resection with resection of chest wall (Lung", "category": "BRONCHUS / LUNGS / PLEURA", "c1": 20000, "c2": 17500, "c3": 20000, "suspect": true}, {"code": "300-19-03", "name": "Lung resection with resection of chest wall (Chest", "category": "BRONCHUS / LUNGS / PLEURA", "c1": 20000, "c2": 17500, "c3": 20000, "suspect": true}, {"code": "377-19-01", "name": "Decortication of lung (Lt)", "category": "BRONCHUS / LUNGS / PLEURA", "c1": 16000, "c2": 14000, "c3": 16000, "suspect": true}, {"code": "376-19-01", "name": "Decortication of lung (Rt)", "category": "BRONCHUS / LUNGS / PLEURA", "c1": 16000, "c2": 14000, "c3": 16000, "suspect": true}, {"code": "367-18-01", "name": "Exploratory thoracotomy", "category": "BRONCHUS / LUNGS / PLEURA", "c1": 8000, "c2": 7000, "c3": 8000, "suspect": true}, {"code": "367-51-01", "name": "Repair oflung", "category": "BRONCHUS / LUNGS / PLEURA", "c1": 11200, "c2": 9800, "c3": 11200, "suspect": true}, {"code": "367-19-01", "name": "Biopsy of lesion of lung (Wedge excision)", "category": "BRONCHUS / LUNGS / PLEURA", "c1": 11200, "c2": 9800, "c3": 11200, "suspect": true}, {"code": "386-19-01", "name": "Resection of rib and open drainage of pleural cavity", "category": "BRONCHUS / LUNGS / PLEURA", "c1": 8000, "c2": 7000, "c3": 8000, "suspect": true}, {"code": "375-38-01", "name": "Closure of open drainage of pleural cavity(Rt)", "category": "BRONCHUS / LUNGS / PLEURA", "c1": 8000, "c2": 7000, "c3": 8000, "suspect": true}, {"code": "378-13-02", "name": "Open pleurodesis (Lt)", "category": "BRONCHUS / LUNGS / PLEURA", "c1": 11200, "c2": 9800, "c3": 11200, "suspect": true}, {"code": "376-13-02", "name": "Open pleurodesis (Rt)", "category": "BRONCHUS / LUNGS / PLEURA", "c1": 11200, "c2": 9800, "c3": 11200, "suspect": true}, {"code": "378-13-01", "name": "Endoscopic pleurodesis (Lt)", "category": "BRONCHUS / LUNGS / PLEURA", "c1": 8000, "c2": 7000, "c3": 8000, "suspect": true}, {"code": "376-13-01", "name": "Endoscopic pleurodesis (Rt)", "category": "BRONCHUS / LUNGS / PLEURA", "c1": 8000, "c2": 7000, "c3": 8000, "suspect": true}, {"code": "378-16-01", "name": "Insertion of tube drain into pleural cavity (Lt)", "category": "BRONCHUS / LUNGS / PLEURA", "c1": 2400, "c2": 2100, "c3": 2400, "suspect": true}, {"code": "376-16-01", "name": "Insertion of tube drain into pleural cavity (Rt)", "category": "BRONCHUS / LUNGS / PLEURA", "c1": 2400, "c2": 2100, "c3": 2400, "suspect": true}, {"code": "378-29-01", "name": "Introduction of cytotoxíc substance into pleural cavity", "category": "BRONCHUS / LUNGS / PLEURA", "c1": 2400, "c2": 2100, "c3": 2400, "suspect": true}, {"code": "376-19-01", "name": "Introduction ofcytotoxic substance into pleural cavity", "category": "BRONCHUS / LUNGS / PLEURA", "c1": 2400, "c2": 2100, "c3": 2400, "suspect": true}, {"code": "380-19-03", "name": "Open biopsy of lesion ofmediastinum", "category": "MEDIASTINUM AND OESOPHAGUS", "c1": 8000, "c2": 7000, "c3": 4500, "suspect": false}, {"code": "380-18-01", "name": "Mediastinotomy, mediastinoscopy", "category": "MEDIASTINUM AND OESOPHAGUS", "c1": 8000, "c2": 7000, "c3": 4500, "suspect": false}, {"code": "380-18-02", "name": "Exploration of mediastinum", "category": "MEDIASTINUM AND OESOPHAGUS", "c1": 11200, "c2": 300, "c3": 2800, "suspect": true}, {"code": "380-19-02", "name": "Endoscopic excision of lesion of mediastinum", "category": "MEDIASTINUM AND OESOPHAGUS", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "384-38-01", "name": "Closure of fistula of oesophagus", "category": "MEDIASTINUM AND OESOPHAGUS", "c1": 16000, "c2": 144000, "c3": 9000, "suspect": true}, {"code": "384-69-01", "name": "Cervical oesophagostomy", "category": "MEDIASTINUM AND OESOPHAGUS", "c1": 8000, "c2": 7000, "c3": 4500, "suspect": false}, {"code": "384-27-01", "name": "Endoscopic dilation of oesophagus usin+A65:B73g", "category": "MEDIASTINUM AND OESOPHAGUS", "c1": 12800, "c2": 11200, "c3": 7200, "suspect": false}, {"code": "384-50-01", "name": "Endoscopic removal of foreign body from", "category": "MEDIASTINUM AND OESOPHAGUS", "c1": 4000, "c2": 3500, "c3": 2000, "suspect": false}, {"code": "384-14-01", "name": "Endoscopic dilation of oesophagus using rigid", "category": "MEDIASTINUM AND OESOPHAGUS", "c1": 4000, "c2": 3500, "c3": 2000, "suspect": true}, {"code": "382-51-01", "name": "Repair of oesophageal hiatus using thoracic", "category": "MEDIASTINUM AND OESOPHAGUS", "c1": 16000, "c2": 14000, "c3": 9000, "suspect": false}, {"code": "383-51-01", "name": "Repair of oesophageal hiatus using thoracic", "category": "MEDIASTINUM AND OESOPHAGUS", "c1": 16000, "c2": 14000, "c3": 9000, "suspect": false}, {"code": "382-51-03", "name": "Repair of diaphragmatic hernia using thoracic", "category": "MEDIASTINUM AND OESOPHAGUS", "c1": 16000, "c2": 14000, "c3": 9000, "suspect": false}, {"code": "383-51-03", "name": "Repair of diaphragmatic hernia using thoracic", "category": "MEDIASTINUM AND OESOPHAGUS", "c1": 16000, "c2": 14000, "c3": 9000, "suspect": false}, {"code": "438-51-05", "name": "Repair of oesophageal hiatus using abdominal", "category": "MEDIASTINUM AND OESOPHAGUS", "c1": 16000, "c2": 14000, "c3": 9000, "suspect": false}, {"code": "446-47-01", "name": "Fundoplication using abdominal approach", "category": "MEDIASTINUM AND OESOPHAGUS", "c1": 16000, "c2": 14000, "c3": 9000, "suspect": false}, {"code": "446-47-02", "name": "Gastroplasty and antireflux procedure+AA65:B73", "category": "MEDIASTINUM AND OESOPHAGUS", "c1": 20000, "c2": 17500, "c3": 12500, "suspect": false}, {"code": "069-61-23", "name": "Transplantation ofheartand lung", "category": "HEART", "c1": 40000, "c2": 35000, "c3": 25000, "suspect": false}, {"code": "338-61-23", "name": "Transplantation ofheart", "category": "HEART", "c1": 40000, "c2": 35000, "c3": 25000, "suspect": true}, {"code": "338-61-22", "name": "Piggy back transplantation ofheart", "category": "HEART", "c1": 40000, "c2": 35000, "c3": 25000, "suspect": false}, {"code": "338-47-01", "name": "Correction of tetralogy of fallot", "category": "HEART", "c1": 28000, "c2": 24500, "c3": 17500, "suspect": false}, {"code": "339-47-31", "name": "Reconstruction ofatrium using atrial patch for", "category": "HEART", "c1": 28000, "c2": 24500, "c3": 17500, "suspect": false}, {"code": "340-47-41", "name": "Reconstruction ofatrium using atrial patch for", "category": "HEART", "c1": 28000, "c2": 24500, "c3": 17500, "suspect": false}, {"code": "317-47-01", "name": "Arterial Switch Operation", "category": "HEART", "c1": 40000, "c2": 35000, "c3": 25000, "suspect": false}, {"code": "333-47-01", "name": "Arterial Switch Operation (Vein)", "category": "HEART", "c1": 40000, "c2": 35000, "c3": 25000, "suspect": false}, {"code": "329-47-02", "name": "Correction oftotal anomalous pulmonary venous", "category": "HEART", "c1": 28000, "c2": 24500, "c3": 17500, "suspect": false}, {"code": "329-47-01", "name": "Correction oftotal anomalous pulmonary venous", "category": "HEART", "c1": 28000, "c2": 24500, "c3": 17500, "suspect": false}, {"code": "329-47-03", "name": "Correction oftotal anomalous pulmonary venous", "category": "HEART", "c1": 28000, "c2": 24500, "c3": 17500, "suspect": false}, {"code": "341-47-03", "name": "Primary closure of defect of atrioventricular septum", "category": "HEART", "c1": 28000, "c2": 24500, "c3": 17500, "suspect": false}, {"code": "341-47-02", "name": "Primary closure of defect ofinteratrial septum", "category": "HEART", "c1": 24000, "c2": 21000, "c3": 15000, "suspect": false}, {"code": "344-47-02", "name": "Primary closure of defect of interventricular septum", "category": "HEART", "c1": 28000, "c2": 24500, "c3": 17500, "suspect": false}, {"code": "341-47-01", "name": "Open atrial septostomy", "category": "HEART", "c1": 20000, "c2": 17500, "c3": 12500, "suspect": false}, {"code": "339-19-03", "name": "Excision of lesion ofatrium (R)", "category": "HEART", "c1": 24000, "c2": 21000, "c3": 15000, "suspect": false}, {"code": "340-19-01", "name": "Excision of lesion ofatriumn(Lt)", "category": "HEART", "c1": 24000, "c2": 21000, "c3": 15000, "suspect": false}, {"code": "338-19-02", "name": "Excision of lesion of wall of heart-aneurysmectomy", "category": "HEART", "c1": 32000, "c2": 28000, "c3": 20000, "suspect": false}, {"code": "338-19-01", "name": "Biopsy of lesion of wall of heart", "category": "HEART", "c1": 24000, "c2": 21000, "c3": 15000, "suspect": false}, {"code": "353-19-02", "name": "Pericardiectomy", "category": "HEART", "c1": 16000, "c2": 14000, "c3": 9000, "suspect": false}, {"code": "347-52-41", "name": "Replacement of mitral valve", "category": "HEART", "c1": 32000, "c2": 28000, "c3": 20000, "suspect": false}, {"code": "347-47-41", "name": "Mitral valvuloplasty", "category": "HEART", "c1": 32000, "c2": 28000, "c3": 20000, "suspect": false}, {"code": "346-52-41", "name": "Replacement of aortic valve", "category": "HEART", "c1": 32000, "c2": 28000, "c3": 20000, "suspect": false}, {"code": "346-47-41", "name": "Aortic valvuloplasty", "category": "HEART", "c1": 32000, "c2": 28000, "c3": 20000, "suspect": false}, {"code": "349-52-41", "name": "Replacement of tricuspid valve", "category": "HEART", "c1": 32000, "c2": 28000, "c3": 20000, "suspect": false}, {"code": "349-47-41", "name": "Tricuspid valvuloplasty", "category": "HEART", "c1": 28000, "c2": 20000, "c3": 10000, "suspect": false}, {"code": "348-52-41", "name": "Replacement of pulmonary valve", "category": "HEART", "c1": 32000, "c2": 28000, "c3": 20000, "suspect": false}, {"code": "348-47-41", "name": "Pulmonary valvuloplasty", "category": "HEART", "c1": 32000, "c2": 28000, "c3": 20000, "suspect": false}, {"code": "347-27-05", "name": "Openvalvotomyofheart(MitralValve) 24,(,000", "category": "HEART", "c1": 21000, "c2": 15000, "c3": 7500, "suspect": false}, {"code": "348-27-05", "name": "Open valvotomy of heart (PulmonaryValve)", "category": "HEART", "c1": 24000, "c2": 1000, "c3": 15000, "suspect": true}, {"code": "349-27-05", "name": "Open valvotomy of heart (Tricuspid Valve)", "category": "HEART", "c1": 24000, "c2": 21000, "c3": 15000, "suspect": false}, {"code": "346-27-01", "name": "Closed valvotomy ofheart (Aortic Valve)", "category": "HEART", "c1": 14000, "c2": 9000, "c3": 4000, "suspect": true}, {"code": "347-27-01", "name": "Closed valvotomy of heart (Mitral Valve)", "category": "HEART", "c1": 16000, "c2": 14000, "c3": 9000, "suspect": false}, {"code": "348-27-01", "name": "Closed valvotomy ofheart (Pulmonary Valve)", "category": "HEART", "c1": 16000, "c2": 14000, "c3": 9000, "suspect": false}, {"code": "349-27-01", "name": "Closed valvotomy of heart (Tricuspid Valve)", "category": "HEART", "c1": 16000, "c2": 14000, "c3": 9000, "suspect": false}, {"code": "338-19-01", "name": "Infundibulectomy for pulmonic heart", "category": "HEART", "c1": 28000, "c2": 24500, "c3": 17500, "suspect": false}, {"code": "314-51-01", "name": "Repair of supraaortic stenosis", "category": "HEART", "c1": 32000, "c2": 28000, "c3": 20000, "suspect": false}, {"code": "346-52-42", "name": "Double valve replacement ormore (Aortic Valve)", "category": "HEART", "c1": 32000, "c2": 280, "c3": 20000, "suspect": true}, {"code": "347-52-42", "name": "Double valve replacement or more (MitralValve)", "category": "HEART", "c1": 32000, "c2": 28000, "c3": 20000, "suspect": false}, {"code": "348-52-42", "name": "Double valve replacement ormore (PulmonaryValve)", "category": "HEART", "c1": 32000, "c2": 28000, "c3": 20000, "suspect": false}, {"code": "349-52-42", "name": "Double valve replacement ormore (Tricuspid Vave)", "category": "HEART", "c1": 32000, "c2": 28000, "c3": 20000, "suspect": false}, {"code": "323-05-11", "name": "Coronary Artery Bypass Graft not more than 3 grafts", "category": "HEART", "c1": 32000, "c2": 28000, "c3": 20000, "suspect": false}, {"code": "323-05-12", "name": "Coronary Artery Bypass Graft more than 3 grafts", "category": "HEART", "c1": 32000, "c2": 28000, "c3": 20000, "suspect": false}, {"code": "323-51-01", "name": "Repair of aneurysm of coronary artery or AV fistula", "category": "HEART", "c1": 28000, "c2": 24500, "c3": 17500, "suspect": false}, {"code": "338-32-01", "name": "Open chest massage ofheart without previous surgery", "category": "HEART", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "339-28-82", "name": "Implantation of cardiac pacemaker system including", "category": "HEART", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "353-27-01", "name": "Fenestration of pericardium", "category": "HEART", "c1": 8000, "c2": 7000, "c3": 4500, "suspect": false}, {"code": "353-19-01", "name": "Biopsy of lesion of pericardium", "category": "HEART", "c1": 5600, "c2": 4900, "c3": 3150, "suspect": false}, {"code": "301-07-81", "name": "Replacement of pulse generator", "category": "HEART", "c1": 3600, "c2": 3150, "c3": 1800, "suspect": false}, {"code": "339-07-01", "name": "Removal of intravenous cardiac pacemaker system", "category": "HEART", "c1": 3600, "c2": 3150, "c3": 1800, "suspect": false}, {"code": "379-16-01", "name": "Pericardiocentesis", "category": "HEART", "c1": 800, "c2": 700, "c3": 400, "suspect": false}, {"code": "355-47-01", "name": "Correction of persistent of truncus arteriosus", "category": "GREAT VESSELS", "c1": 32000, "c2": 28000, "c3": 20000, "suspect": false}, {"code": "354-15-01", "name": "Division of patent ductus arteriosus", "category": "GREAT VESSELS", "c1": 16000, "c2": 14000, "c3": 9000, "suspect": false}, {"code": "354-38-01", "name": "Ligature of patent ductus arteriosus", "category": "GREAT VESSELS", "c1": 11200, "c2": 9800, "c3": 9300, "suspect": true}, {"code": "314-05-41", "name": "Creation ofshunt to pulmonary artery from ascending", "category": "GREAT VESSELS", "c1": 16000, "c2": 14000, "c3": 9000, "suspect": false}, {"code": "314-05-01", "name": "Creation of anastomosis to pulmonary artery from", "category": "GREAT VESSELS", "c1": 16000, "c2": 14000, "c3": 9000, "suspect": false}, {"code": "318-05-02", "name": "Creation of anastomosis to pulmonary artery from", "category": "GREAT VESSELS", "c1": 16000, "c2": 14000, "c3": 9000, "suspect": false}, {"code": "324-05-01", "name": "Creation of anastomosis to pulmonary artery from", "category": "GREAT VESSELS", "c1": 24000, "c2": 21000, "c3": 15000, "suspect": false}, {"code": "319-38-01", "name": "Application of band to pulmonary artery", "category": "GREAT VESSELS", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "319-50-05", "name": "Open embolectomy of pulmonary artery", "category": "GREAT VESSELS", "c1": 24000, "c2": 21000, "c3": 15000, "suspect": false}, {"code": "316-19-11", "name": "Aneurysmectomy of thoracic aorta with graft", "category": "GREAT VESSELS", "c1": 40000, "c2": 35000, "c3": 25000, "suspect": false}, {"code": "346-52-03", "name": "Bentall operation", "category": "GREAT VESSELS", "c1": 40000, "c2": 35000, "c3": 25000, "suspect": false}, {"code": "316-05-41", "name": "Extra anatomical bypass of thoracic aorta", "category": "GREAT VESSELS", "c1": 32000, "c2": 28000, "c3": 20000, "suspect": false}, {"code": "316-51-12", "name": "Plastic repair of aorta using cardio pulmonary bypass", "category": "GREAT VESSELS", "c1": 32000, "c2": 28000, "c3": 20000, "suspect": false}, {"code": "381-19-02", "name": "Thymectomy", "category": "OTHERS", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "381-19-01", "name": "Biopsy of lesion ofthymus gland", "category": "OTHERS", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "381-18-01", "name": "Exploration ofthymus gland", "category": "OTHERS", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "205-05-42", "name": "Bypass to carotid artery", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 16000, "c2": 14000, "c3": 9000, "suspect": false}, {"code": "205-19-02", "name": "Endarterectomy of carotid artery", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 17600, "c2": 15400, "c3": 9900, "suspect": false}, {"code": "205-51-01", "name": "Repair of carotid artery", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 1200, "c2": 9800, "c3": 6300, "suspect": true}, {"code": "205-50-05", "name": "Open embolectomy ofcarotid artery", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 7200, "c2": 6300, "c3": 4050, "suspect": false}, {"code": "205-19-01", "name": "Operations on aneurysm of carotid body", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 16000, "c2": 14000, "c3": 9000, "suspect": false}, {"code": "318-05-42", "name": "Bypass of subclavian artery", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 16000, "c2": 14000, "c3": 9000, "suspect": false}, {"code": "318-19-02", "name": "Endarterectomy ofsubclaviarn artery", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 16000, "c2": 14000, "c3": 9000, "suspect": false}, {"code": "318-38-01", "name": "Ligation of subclavian artery", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "318-19-02", "name": "Operations on aneurysm of subclavian artery", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 16000, "c2": 14000, "c3": 9000, "suspect": false}, {"code": "320-50-02", "name": "Open embolectomy/thrombectomy axillary", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 11200, "c2": 9800, "c3": 63000, "suspect": true}, {"code": "637-50-02", "name": "Open embolectomy/thrombectomy brachial", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 8000, "c2": 7000, "c3": 4500, "suspect": false}, {"code": "318-50-02", "name": "Open embolectomy/thrombectomy subclavian", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "318-50-02", "name": "Thrombectomy subclavian vein by neck incision", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 9800, "c2": 6300, "c3": 2800, "suspect": false}, {"code": "414-19-01", "name": "Endarterectomy of renal artery", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 16000, "c2": 14000, "c3": 9000, "suspect": false}, {"code": "414-50-02", "name": "Open embolectomy of renal artery", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 11200, "c2": 9800, "c3": 63000, "suspect": true}, {"code": "414-38-00", "name": "Ligation of renal artery", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 8000, "c2": 7000, "c3": 45000, "suspect": true}, {"code": "414-47-00", "name": "Operation on aneurysm of renal artery", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 16000, "c2": 14000, "c3": 90000, "suspect": true}, {"code": "413-05-00", "name": "Bypass of visceral branch of abdominal aorta", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 20000, "c2": 17600, "c3": 12, "suspect": true}, {"code": "416-19-01", "name": "Endarterectomy of superior mesenteric artery of", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 20000, "c2": 17500, "c3": 12500, "suspect": false}, {"code": "425-19-01", "name": "Endarterectomy of superior mesenteric vein of", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 20000, "c2": 17500, "c3": 12500, "suspect": false}, {"code": "415-50-02", "name": "Open embolectomy of celiac vessels of abdominal", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "416-50-01", "name": "Open embolectomy of superior mesenteric artery of", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "425-50-01", "name": "Open embolectomy of superior mesenteric vein of", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "415-38-00", "name": "Ligation of celiac vessels of abdominal aorta", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 8000, "c2": 7000, "c3": 4500, "suspect": false}, {"code": "416-38-01", "name": "Ligation of superior mesenteric artery of abdominal", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 8000, "c2": 7000, "c3": 4500, "suspect": true}, {"code": "415-47-00", "name": "Operation on aneurysm of visceral branch of", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 20000, "c2": 17500, "c3": 12500, "suspect": false}, {"code": "414-54-03", "name": "Thrombectomy/embolectomy arterial renal", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "416-50-03", "name": "Thrombectomy/embolectomy arterial mesenteric", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "415-50-03", "name": "Thrombectomy/embolectomy arterial celiac", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 111200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "413-50-00", "name": "Thrombectomy/embolectomy arterial aortic", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "527-50-01", "name": "Thrombectomy/embolectomy arterial iliac", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 1200, "c2": 9800, "c3": 6300, "suspect": true}, {"code": "325-50-02", "name": "Venous thrombectomy vena cava or iliac veins by", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "325-50-01", "name": "Venous thrombectomy vena cava, iliac, femoral,", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 8000, "c2": 7000, "c3": 4500, "suspect": false}, {"code": "527-05-40", "name": "Bypass of iliac artery by anastomosis of iliac artery to", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 16000, "c2": 14000, "c3": 9000, "suspect": false}, {"code": "789-05-40", "name": "Bypass of iliac artery by anastomosis of femoral", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "527-19-00", "name": "Endarterectomy of common iliac artery", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 11200, "c2": 984, "c3": 2800, "suspect": true}, {"code": "527-51-01", "name": "Repair of iliac artery", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "527-50-02", "name": "Open embolectomy of common iliac artery", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "789-19-43", "name": "Replacement of aneurysmal common femoral artery", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 12800, "c2": 11200, "c3": 7200, "suspect": false}, {"code": "789-19-43", "name": "Replacement ofaneurysmal common femoral artery", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 14400, "c2": 12600, "c3": 8100, "suspect": false}, {"code": "789-05-49", "name": "Bypass of common femoral artery by anastomosis of", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 16000, "c2": 14000, "c3": 8000, "suspect": false}, {"code": "789-05-49", "name": "Bypass of common femoral artery by anastomosis of", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 16000, "c2": 14000, "c3": 9000, "suspect": false}, {"code": "789-05-49", "name": "Bypass of common femoral artery by anastomosis of", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 12800, "c2": 11200, "c3": 7200, "suspect": false}, {"code": "789-05-19", "name": "Bypass of common femoral artery by anastomosis of", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 20000, "c2": 17500, "c3": 12500, "suspect": false}, {"code": "789-19-03", "name": "Endarterectomy of common femoral artery", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "789-51-08", "name": "Profundoplasty of femoral artery", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "789-50-05", "name": "Open embolectomy of common femoral artery", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 8000, "c2": 7000, "c3": 4500, "suspect": false}, {"code": "794-38-09", "name": "Ligation of aneurysm of popliteal artery + bypass", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 14000, "c2": 9000, "c3": 4000, "suspect": false}, {"code": "789-19-09", "name": "Operation on aneurysm of femoral artery +bypass", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 16000, "c2": 14000, "c3": 9000, "suspect": false}, {"code": "053-05-49", "name": "Axillo-femoral by pass", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 14400, "c2": 12600, "c3": 8100, "suspect": false}, {"code": "053-05-49", "name": "Axillo-femoral bypass", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 14400, "c2": 12500, "c3": 3600, "suspect": true}, {"code": "430-19-49", "name": "Aneurysmectomy or Aneurysmorrhaphy with graft", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 20000, "c2": 17500, "c3": 12500, "suspect": false}, {"code": "007-19-11", "name": "Endarterectomy an patch repair of artery", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "007-50-11", "name": "Thromboendarterectomy", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "007-51-41", "name": "Repair of artery using prosthesis", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "007-51-11", "name": "Repair of artery using vein graft", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": true}, {"code": "007-50-03", "name": "Open embolectomy ofartery", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 8000, "c2": 7000, "c3": 4500, "suspect": false}, {"code": "418-19-00", "name": "Splenic artery aneurysm incl. Graft", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 16000, "c2": 14000, "c3": 9000, "suspect": true}, {"code": "640-05-02", "name": "Creation of arteriovenous fistula", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 6400, "c2": 5600, "c3": 3600, "suspect": false}, {"code": "640-05-49", "name": "Creation of arteriovenous fistula using prosthetic", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 8000, "c2": 7000, "c3": 4500, "suspect": false}, {"code": "640-38-01", "name": "Closure arteriovenous shunt", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 4800, "c2": 4200, "c3": 2400, "suspect": false}, {"code": "010-19-03", "name": "Excision of congenital arteriovenous malformation", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 16000, "c2": 14000, "c3": 9000, "suspect": false}, {"code": "010-51-01", "name": "Repair of acquired arteriovenous fistula", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "423-05-02", "name": "Creation of portocaval shunt", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 20000, "c2": 17500, "c3": 12500, "suspect": false}, {"code": "425-05-01", "name": "Creation of mesocaval shunt", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 20000, "c2": 17500, "c3": 12500, "suspect": false}, {"code": "426-05-00", "name": "Creation of distal splenorenal shunt", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 24000, "c2": 21000, "c3": 15000, "suspect": false}, {"code": "325-51-01", "name": "Plication vena cava", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "400-69-49", "name": "Creation of peritoneovenous shunt", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 16000, "c2": 14000, "c3": 9000, "suspect": false}, {"code": "325-28-01", "name": "Insertion of permanent dialysis catheter", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 4800, "c2": 4200, "c3": 2400, "suspect": false}, {"code": "791-38-01", "name": "Ligation of saphenous vein (with/without stripping)", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 7200, "c2": 6300, "c3": 4050, "suspect": false}, {"code": "796-38-03", "name": "Ligation of short saphenous vein (with/without", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 7200, "c2": 6300, "c3": 4050, "suspect": false}, {"code": "791-38-02", "name": "Ligation/division of long vein of leg", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "796-38-01", "name": "Ligation/division of short saphenous vein of leg", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "812-29-43", "name": "Injection of sclerosing substance into varicose vein", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 800, "c2": 700, "c3": 400, "suspect": false}, {"code": "812-19-02", "name": "Multipłe phlebectomy (stab avulsion)", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 4000, "c2": 3500, "c3": 2000, "suspect": false}, {"code": "790-50-05", "name": "Open thrombectomy of vein of lower limb", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 111200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "790-51-01", "name": "Phleborrhaphy-suture of major vein", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 7200, "c2": 6300, "c3": 4050, "suspect": false}, {"code": "209-28-40", "name": "Insertion of central venous catheter (JugularVein)", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 1200, "c2": 1050, "c3": 600, "suspect": false}, {"code": "331-28-40", "name": "Insertion of central venous catheter (Subclavian", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 1200, "c2": 1050, "c3": 600, "suspect": false}, {"code": "790-28-40", "name": "Insertion of central venous catheter (FemoralVein)", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 1200, "c2": 1050, "c3": 600, "suspect": false}, {"code": "646-28-00", "name": "Open cannulation of vein", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 11600, "c2": 1400, "c3": 800, "suspect": false}, {"code": "215-19-03", "name": "Block dissection of cervical lymph nodes", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 111200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "306-19-03", "name": "Block dissection ofaxillary lymph nodes", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 8000, "c2": 7000, "c3": 4500, "suspect": false}, {"code": "380-19-05", "name": "Block dissection of mediastinal lymph nodes", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 8000, "c2": 7000, "c3": 4500, "suspect": false}, {"code": "434-19-05", "name": "Block dissection of paraaortic lymph nodes", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 8000, "c2": 7000, "c3": 4500, "suspect": false}, {"code": "406-19-03", "name": "Block dissection of inguinal lymph nodes", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 8000, "c2": 7000, "c3": 4500, "suspect": false}, {"code": "306-19-02", "name": "Biopsy ofaxillary lymph nodes (GA)", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 2400, "c2": 2100, "c3": 600, "suspect": false}, {"code": "306-19-01", "name": "Biopsy ofaxillary lymph nodes (LA)", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 800, "c2": 700, "c3": 400, "suspect": false}, {"code": "217-19-02", "name": "Biopsy of supraclavicular lymph nodes (LA)", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 800, "c2": 700, "c3": 400, "suspect": false}, {"code": "216-19-02", "name": "Biopsy of cervical lymph nodes (GA)", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 2400, "c2": 2100, "c3": 1200, "suspect": false}, {"code": "216-19-02", "name": "Biopsy of cervical lymph nodes (LA)", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 800, "c2": 700, "c3": 400, "suspect": false}, {"code": "216-19-03", "name": "Excision of cervical lymph node (GA)", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 2400, "c2": 2100, "c3": 1200, "suspect": false}, {"code": "216-19-03", "name": "Excision ofaxillary lymph node(GA)", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 2400, "c2": 2100, "c3": 1200, "suspect": false}, {"code": "434-19-09", "name": "Excision of paraaortic lymph node", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 7200, "c2": 6300, "c3": 4050, "suspect": false}, {"code": "406-19-01", "name": "Excision of inguinal lymph node (GA)", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 2400, "c2": 2100, "c3": 1200, "suspect": true}, {"code": "021-47-09", "name": "Reconstruction of lymphatic duct", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 111200, "c2": 9600, "c3": 600, "suspect": true}, {"code": "021-05-09", "name": "Bypass of obstruction of lymphatic duct", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "200-19-03", "name": "Excision of cystic hygroma", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 7200, "c2": 6300, "c3": 4050, "suspect": false}, {"code": "216-16-00", "name": "Drainage of lesion of cervical lymph node (LA)", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 800, "c2": 700, "c3": 400, "suspect": false}, {"code": "306-16-01", "name": "Drainage of lesion of axillary lymph node (LA)", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 800, "c2": 700, "c3": 400, "suspect": false}, {"code": "406-16-01", "name": "Drainage of lesion of inguinal lymph node (LA)", "category": "VASCULAR SYSTEM (OTHER THAN INTRA-THORACIC)", "c1": 800, "c2": 700, "c3": 400, "suspect": false}, {"code": "384-19-03", "name": "Oesophagogastrectomy and anastomosis of", "category": "OESOPHAGUS", "c1": 20000, "c2": 17500, "c3": 12500, "suspect": false}, {"code": "384-19-06", "name": "Oesophagogastrectomy and anastomosis of pharynx", "category": "OESOPHAGUS", "c1": 24000, "c2": 21000, "c3": 15000, "suspect": false}, {"code": "384-19-07", "name": "Oesophagectomy and interposition of jejunum", "category": "OESOPHAGUS", "c1": 24000, "c2": 21000, "c3": 7500, "suspect": false}, {"code": "384-19-08", "name": "Oesophagectomy and interposition of colon", "category": "OESOPHAGUS", "c1": 24000, "c2": 21000, "c3": 15000, "suspect": false}, {"code": "384-19-02", "name": "Partial oesophagectomy and end to end anastomosis", "category": "OESOPHAGUS", "c1": 16000, "c2": 14000, "c3": 9000, "suspect": false}, {"code": "384-19-01", "name": "Excision of lesion of oesophagus", "category": "OESOPHAGUS", "c1": 8000, "c2": 7000, "c3": 4500, "suspect": false}, {"code": "384-05-02", "name": "Bypass of oesophagus by anastomosis of", "category": "OESOPHAGUS", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "384-05-03", "name": "Bypass of oesophagus by anastomosis of", "category": "OESOPHAGUS", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "384-05-06", "name": "Bypass of oesophagus by interposition of jejunum", "category": "OESOPHAGUS", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "384-05-08", "name": "Bypass of oesophagus by interposition of", "category": "OESOPHAGUS", "c1": 12800, "c2": 11200, "c3": 7200, "suspect": false}, {"code": "384-55-01", "name": "Revision of anastomosis of oesophagus", "category": "OESOPHAGUS", "c1": 12800, "c2": 11200, "c3": 3200, "suspect": false}, {"code": "384-54-02", "name": "Removal of bypass of oesophagus", "category": "OESOPHAGUS", "c1": 11200, "c2": 9800, "c3": 2800, "suspect": false}, {"code": "384-54-03", "name": "Closure of bypass of oesophagus", "category": "OESOPHAGUS", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "446-19-07", "name": "Total gastrectomy with GI continuity", "category": "STOMACH", "c1": 16000, "c2": 14000, "c3": 9000, "suspect": false}, {"code": "446-19-03", "name": "Partial gastrectomy with GI continuity, with or without", "category": "STOMACH", "c1": 16000, "c2": 14000, "c3": 9000, "suspect": false}, {"code": "442-18-01", "name": "Laparotomy exploratory, staging for biliary atresia", "category": "STOMACH", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "442-18-02", "name": "Laparotomy staging for Hodgkins disease", "category": "STOMACH", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "446-19-01", "name": "Open excision of lesion of stomach", "category": "STOMACH", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "446-05-03", "name": "Gastric bypass by anastomosis of stomach to", "category": "STOMACH", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "446-05-05", "name": "Gastric bypass by anastomosis of stomach to jejunum", "category": "STOMACH", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "446-69-02", "name": "Creation of permanent gastrostomy (mucosal lining)", "category": "STOMACH", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "446-69-01", "name": "Temporary gastrostomy (serosal lining)", "category": "STOMACH", "c1": 8000, "c2": 7000, "c3": 4500, "suspect": false}, {"code": "446-51-03", "name": "Gastropexy", "category": "STOMACH", "c1": 9600, "c2": 400, "c3": 5400, "suspect": true}, {"code": "446-51-02", "name": "Closure of perforation of stomach", "category": "STOMACH", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "446-50-01", "name": "Open removal of foreign body from stomach", "category": "STOMACH", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "447-27-00", "name": "Pyloromyotomy", "category": "STOMACH", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "447-51-00", "name": "Pyloroplasty + vagotomy", "category": "STOMACH", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "042-50-03", "name": "Fiberoptic endoscopic snare removal of lesion of", "category": "STOMACH", "c1": 3200, "c2": 2800, "c3": 800, "suspect": false}, {"code": "042-13-06", "name": "Fiberoptic endoscopic laser destruction of lesion of", "category": "STOMACH", "c1": 3200, "c2": 2800, "c3": 1600, "suspect": false}, {"code": "042-13-04", "name": "Fiberoptic endoscopic cauterisation of lesion ofupper", "category": "STOMACH", "c1": 3200, "c2": 2800, "c3": 1600, "suspect": false}, {"code": "042-13-05", "name": "Fiberoptic endoscopic sclerotherapy to lesion of", "category": "STOMACH", "c1": 3200, "c2": 2800, "c3": 1600, "suspect": false}, {"code": "042-28-40", "name": "Fiberoptic endoscopic insertion of prosthesis into", "category": "STOMACH", "c1": 3600, "c2": 1800, "c3": 900, "suspect": false}, {"code": "042-50-02", "name": "Fiberoptic endoscopic removal of foreign body from", "category": "STOMACH", "c1": 3200, "c2": 2800, "c3": 1600, "suspect": false}, {"code": "384-14-00", "name": "Fiberoptic endoscopic dilation of upper", "category": "STOMACH", "c1": 3200, "c2": 2800, "c3": 1600, "suspect": false}, {"code": "042-18-02", "name": "Fiberoptic endoscopic examination of upper", "category": "STOMACH", "c1": 2400, "c2": 2100, "c3": 1200, "suspect": false}, {"code": "448-19-03", "name": "Excision of lesion of duodenum", "category": "DUODENUM", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "448-05-01", "name": "Bypass of duodenum by anastomosis", "category": "DUODENUM", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "448-19-01", "name": "Open biopsy of lesion of duodenum", "category": "DUODENUM", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "448-51-01", "name": "Closure of perforation of duodenum", "category": "DUODENUM", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "448-50-03", "name": "Open removal of foreign body from duodenum", "category": "DUODENUM", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "448-28-42", "name": "Open insertion of tubal prosthesis into duodenum", "category": "DUODENUM", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "448-27-01", "name": "Incision ofduodernum", "category": "DUODENUM", "c1": 9600, "c2": 8400, "c3": 2400, "suspect": false}, {"code": "448-53-01", "name": "Correction of malrotation of duodenum", "category": "DUODENUM", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "448-51-03", "name": "Duodenoplasty", "category": "DUODENUM", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "449-47-04", "name": "Small bowel resection with anastomosis (Jejunum)", "category": "JEJUNUM / ILEUM", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "450-47-04", "name": "Small bowel resection with anastomosis (lleum)", "category": "JEJUNUM / ILEUM", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "449-19-03", "name": "Excision of lesion of small bowel (Jejunum)", "category": "JEJUNUM / ILEUM", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "450-19-03", "name": "Excision of lesion of small bowel (lleum)", "category": "JEJUNUM / ILEUM", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "449-69-01", "name": "Creation of jejunostomy", "category": "JEJUNUM / ILEUM", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "449-55-01", "name": "Revision ofjejunostomy", "category": "JEJUNUM / ILEUM", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "449-05-01", "name": "Small bowel bypass by enteroenterostomy (Jejunum)", "category": "JEJUNUM / ILEUM", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "449-19-02", "name": "Open biopsy of small bowel lesion (Jejunum)", "category": "JEJUNUM / ILEUM", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "450-19-02", "name": "Open biopsy of small bowel lesion (Ileum)", "category": "JEJUNUM / ILEUM", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": true}, {"code": "450-51-01", "name": "Closure of perforation of small bowel (Ileum)", "category": "JEJUNUM / ILEUM", "c1": 9600, "c2": 8400, "c3": 6400, "suspect": false}, {"code": "449-47-04", "name": "Small bowel resection with anastomosis (Jejunum)", "category": "JEJUNUM / ILEUM", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "450-47-04", "name": "Small bowel resection with anastomosis (lleum)", "category": "JEJUNUM / ILEUM", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "450-55-01", "name": "Revision ofileostomy", "category": "JEJUNUM / ILEUM", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "450-54-01", "name": "Closure ofileostomy", "category": "JEJUNUM / ILEUM", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "450-48-01", "name": "Open reduction of intussusception of ileum", "category": "JEJUNUM / ILEUM", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "450-51-02", "name": "Plication of ileum", "category": "JEJUNUM / ILEUM", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "450-51-03", "name": "Strictureplasty of ileum", "category": "JEJUNUM / ILEUM", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "449-47-01", "name": "Enterostomy (Jejunum)", "category": "JEJUNUM / ILEUM", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "452-19-01", "name": "Appendicectomy (simple)", "category": "APPENDIX / CAECUM / COLON", "c1": 7200, "c2": 6300, "c3": 4050, "suspect": false}, {"code": "452-19-02", "name": "Appendicectomy (complicated)", "category": "APPENDIX / CAECUM / COLON", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "452-16-01", "name": "Drainage of abscess of appendix", "category": "APPENDIX / CAECUM / COLON", "c1": 7200, "c2": 6300, "c3": 4050, "suspect": false}, {"code": "066-19-03", "name": "Panproctocolectomy and ileostomy", "category": "APPENDIX / CAECUM / COLON", "c1": 24000, "c2": 21000, "c3": 15000, "suspect": false}, {"code": "066-19-03", "name": "Panproctocolectomy and anastomosis of ileum to", "category": "APPENDIX / CAECUM / COLON", "c1": 24000, "c2": 21000, "c3": 15000, "suspect": false}, {"code": "453-19-03", "name": "Total colectomy and anastomosis of ileum to rectum", "category": "APPENDIX / CAECUM / COLON", "c1": 24000, "c2": 21000, "c3": 15000, "suspect": false}, {"code": "453-19-03", "name": "Total colectomy and ileostomy and creation of rectal", "category": "APPENDIX / CAECUM / COLON", "c1": 24000, "c2": 21000, "c3": 15000, "suspect": false}, {"code": "453-19-03", "name": "Total colectomy and ileostomy", "category": "APPENDIX / CAECUM / COLON", "c1": 24000, "c2": 21000, "c3": 15000, "suspect": false}, {"code": "453-19-05", "name": "Extended hemicolectomy and anastomosis", "category": "APPENDIX / CAECUM / COLON", "c1": 20000, "c2": 17500, "c3": 12500, "suspect": false}, {"code": "453-49-02", "name": "Extended hemicolectomy and ileostomy", "category": "APPENDIX / CAECUM / COLON", "c1": 20000, "c2": 17500, "c3": 12500, "suspect": false}, {"code": "453-19-04", "name": "Hemicolectomy and ileostomy", "category": "APPENDIX / CAECUM / COLON", "c1": 16000, "c2": 14000, "c3": 9000, "suspect": false}, {"code": "456-19-02", "name": "Transverse colectomy and anastomosis", "category": "APPENDIX / CAECUM / COLON", "c1": 16000, "c2": 14000, "c3": 9000, "suspect": false}, {"code": "456-19-01", "name": "Transverse colectomy and ileostomy", "category": "APPENDIX / CAECUM / COLON", "c1": 14000, "c2": 9000, "c3": 4000, "suspect": false}, {"code": "458-19-02", "name": "Sigmoid colectomy and anastomosis", "category": "APPENDIX / CAECUM / COLON", "c1": 16000, "c2": 1000, "c3": 4000, "suspect": true}, {"code": "458-19-02", "name": "Sigmoid colectomy and ileostomy", "category": "APPENDIX / CAECUM / COLON", "c1": 16000, "c2": 14000, "c3": 9000, "suspect": false}, {"code": "453-19-07", "name": "Colectomy and anastomosis", "category": "APPENDIX / CAECUM / COLON", "c1": 16000, "c2": 14000, "c3": 9000, "suspect": false}, {"code": "453-19-07", "name": "Colectomy and ileostomy", "category": "APPENDIX / CAECUM / COLON", "c1": 16000, "c2": 14000, "c3": 9000, "suspect": false}, {"code": "453-19-03", "name": "Segment resection of colon", "category": "APPENDIX / CAECUM / COLON", "c1": 12800, "c2": 11200, "c3": 3200, "suspect": true}, {"code": "453-19-02", "name": "Wedge excision of lesion of colon", "category": "APPENDIX / CAECUM / COLON", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "453-05-01", "name": "Bypass of colon by anastomosis", "category": "APPENDIX / CAECUM / COLON", "c1": 111200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "454-69-01", "name": "Tube caecostomy", "category": "APPENDIX / CAECUM / COLON", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "453-55-01", "name": "Revision of colostomy", "category": "APPENDIX / CAECUM / COLON", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "453-54-01", "name": "Closure of colostomy", "category": "APPENDIX / CAECUM / COLON", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "453-48-01", "name": "Open reduction of intussusception of colon", "category": "APPENDIX / CAECUM / COLON", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "453-48-01", "name": "Open reduction of volvulus of colon", "category": "APPENDIX / CAECUM / COLON", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "453-18-02", "name": "Open colonoscopy incl. caecum", "category": "APPENDIX / CAECUM / COLON", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "453-50-03", "name": "Open removal of foreign body from colon", "category": "APPENDIX / CAECUM / COLON", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "453-19-05", "name": "Fiberoptic endoscopic snare removal of lesion of", "category": "APPENDIX / CAECUM / COLON", "c1": 4000, "c2": 3500, "c3": 2000, "suspect": false}, {"code": "453-13-07", "name": "Fiberoptic endoscopic cauterisation of lesion of colon", "category": "APPENDIX / CAECUM / COLON", "c1": 4000, "c2": 3500, "c3": 2000, "suspect": false}, {"code": "453-13-01", "name": "Fiberoptic endoscopic laser destruction of lesion of", "category": "APPENDIX / CAECUM / COLON", "c1": 4000, "c2": 3500, "c3": 2000, "suspect": false}, {"code": "453-14-01", "name": "Fiberoptic endoscopic dilation of colon", "category": "APPENDIX / CAECUM / COLON", "c1": 4000, "c2": 3500, "c3": 2000, "suspect": false}, {"code": "453-50-01", "name": "Fiberoptic endoscopic removal of foreign body from", "category": "APPENDIX / CAECUM / COLON", "c1": 4000, "c2": 3500, "c3": 2000, "suspect": false}, {"code": "453-19-01", "name": "Fiberoptic endoscopic examination of colon and", "category": "APPENDIX / CAECUM / COLON", "c1": 3600, "c2": 3150, "c3": 1800, "suspect": false}, {"code": "458-13-01", "name": "Endoscopic cauterisation of lesion of rectosigmoid", "category": "APPENDIX / CAECUM / COLON", "c1": 2800, "c2": 2450, "c3": 1400, "suspect": false}, {"code": "458-13-02", "name": "Endoscopic laser destruction of lesion ofrectosignoid", "category": "APPENDIX / CAECUM / COLON", "c1": 3600, "c2": 3150, "c3": 1800, "suspect": false}, {"code": "458-14-01", "name": "Endoscopic dilation of rectosigmoid colon using", "category": "APPENDIX / CAECUM / COLON", "c1": 3600, "c2": 3150, "c3": 1800, "suspect": false}, {"code": "458-28-41", "name": "Endoscopic insertion of tubal prosthesis into lower", "category": "APPENDIX / CAECUM / COLON", "c1": 3600, "c2": 3150, "c3": 1800, "suspect": false}, {"code": "457-18-03", "name": "Diagnostic fiberoptic endoscopic examination of", "category": "APPENDIX / CAECUM / COLON", "c1": 2800, "c2": 2450, "c3": 1400, "suspect": false}, {"code": "457-19-05", "name": "Endoscopic snare removal of lesion of sigmoid colon", "category": "APPENDIX / CAECUM / COLON", "c1": 2400, "c2": 2100, "c3": 1200, "suspect": false}, {"code": "457-13-01", "name": "Endoscopic cauterisation of lesion of sigmoid colon", "category": "APPENDIX / CAECUM / COLON", "c1": 2400, "c2": 21100, "c3": 1200, "suspect": true}, {"code": "457-13-03", "name": "Endoscopic laser destruction of lesion of sigmoid", "category": "APPENDIX / CAECUM / COLON", "c1": 2400, "c2": 2100, "c3": 1200, "suspect": false}, {"code": "457-13-02", "name": "Endoscopic cryotherapy to lesion of sigmoid colon", "category": "APPENDIX / CAECUM / COLON", "c1": 2400, "c2": 2100, "c3": 1200, "suspect": false}, {"code": "457-14-01", "name": "Endoscopic dilation of sigmoid colon using rigid", "category": "APPENDIX / CAECUM / COLON", "c1": 2400, "c2": 2100, "c3": 1200, "suspect": false}, {"code": "457-50-01", "name": "Endoscopic removal of foreign body from sigmoid", "category": "APPENDIX / CAECUM / COLON", "c1": 2400, "c2": 2100, "c3": 1200, "suspect": false}, {"code": "457-28-41", "name": "Endoscopic insertion of tubal prosthesis into sigmoid", "category": "APPENDIX / CAECUM / COLON", "c1": 2400, "c2": 2100, "c3": 1200, "suspect": false}, {"code": "457-18-02", "name": "Diagnostic endoscopic examination of sigmoid colon", "category": "APPENDIX / CAECUM / COLON", "c1": 2400, "c2": 2100, "c3": 1200, "suspect": false}, {"code": "457-19-02", "name": "Endoscopic examination of sigmoid colon and biopsy", "category": "APPENDIX / CAECUM / COLON", "c1": 2400, "c2": 2100, "c3": 1200, "suspect": false}, {"code": "457-18-01", "name": "Fiberoptic endoscopic examination of sigmoid colon", "category": "APPENDIX / CAECUM / COLON", "c1": 1600, "c2": 1400, "c3": 800, "suspect": false}, {"code": "452-19-03", "name": "Laparoscopic appendectomy", "category": "APPENDIX / CAECUM / COLON", "c1": 11200, "c2": 3200, "c3": 3200, "suspect": false}, {"code": "459-19-06", "name": "Abdominoperineal excision of rectum and end", "category": "RECTUM / ANUS", "c1": 24000, "c2": 21000, "c3": 15000, "suspect": false}, {"code": "459-19-07", "name": "Proctectomy and anastomosis of colon to anus", "category": "RECTUM / ANUS", "c1": 21000, "c2": 15000, "c3": 7500, "suspect": false}, {"code": "459-19-06", "name": "Anterior resection of rectum", "category": "RECTUM / ANUS", "c1": 24000, "c2": 15000, "c3": 7500, "suspect": false}, {"code": "458-19-03", "name": "Rectosigmoidectomy and closure of rectal stump and", "category": "RECTUM / ANUS", "c1": 16000, "c2": 14000, "c3": 9000, "suspect": false}, {"code": "459-19-05", "name": "Open excision of lesion of rectum", "category": "RECTUM / ANUS", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "459-65-02", "name": "Posterior fixation of rectum", "category": "RECTUM / ANUS", "c1": 111200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "514-51-04", "name": "Abdominal repair of levator ani muscles", "category": "RECTUM / ANUS", "c1": 16000, "c2": 14000, "c3": 9000, "suspect": false}, {"code": "459-19-04", "name": "Transsphincteric excision of lesion of rectum", "category": "RECTUM / ANUS", "c1": 112200, "c2": 9800, "c3": 6300, "suspect": true}, {"code": "458-19-03", "name": "Rectosigmoidectomy and peranal anastomosis", "category": "RECTUM / ANUS", "c1": 24000, "c2": 21000, "c3": 15000, "suspect": false}, {"code": "459-19-03", "name": "Peranal excision of lesion of rectum", "category": "RECTUM / ANUS", "c1": 6400, "c2": 5600, "c3": 3600, "suspect": false}, {"code": "514-28-01", "name": "Insertion of encircling suture around perianal", "category": "RECTUM / ANUS", "c1": 3600, "c2": 3150, "c3": 1800, "suspect": false}, {"code": "514-51-03", "name": "Perineal plication of levator ani muscles and anal", "category": "RECTUM / ANUS", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": true}, {"code": "459-19-02", "name": "Excision of mucosal prolapse of rectum", "category": "RECTUM / ANUS", "c1": 3600, "c2": 3150, "c3": 1800, "suspect": false}, {"code": "459-18-01", "name": "Examination of rectum under anaesthetic", "category": "RECTUM / ANUS", "c1": 1600, "c2": 1400, "c3": 800, "suspect": false}, {"code": "459-14-01", "name": "Rectum stricture, dilation", "category": "RECTUM / ANUS", "c1": 1600, "c2": 1400, "c3": 800, "suspect": false}, {"code": "513-19-02", "name": "Excision of polyps of anus", "category": "RECTUM / ANUS", "c1": 2400, "c2": 2100, "c3": 1200, "suspect": false}, {"code": "513-19-01", "name": "Excision ofskin tag(s)", "category": "RECTUM / ANUS", "c1": 1600, "c2": 1400, "c3": 800, "suspect": true}, {"code": "513-19-07", "name": "Radical excision of anal tumor", "category": "RECTUM / ANUS", "c1": 8000, "c2": 7000, "c3": 4500, "suspect": false}, {"code": "514-27-00", "name": "Incision of sphincter ofanus", "category": "RECTUM / ANUS", "c1": 1600, "c2": 1400, "c3": 800, "suspect": false}, {"code": "513-13-00", "name": "Cauterisation of lesion ofanus", "category": "RECTUM / ANUS", "c1": 1400, "c2": 800, "c3": 400, "suspect": false}, {"code": "514-51-01", "name": "Repair ofanal sphincter (Direct)", "category": "RECTUM / ANUS", "c1": 8000, "c2": 7000, "c3": 4500, "suspect": false}, {"code": "459-47-04", "name": "Reanastomosis of rectum to anal canal for correction", "category": "RECTUM / ANUS", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "529-19-00", "name": "Haemorrhoidectomy", "category": "RECTUM / ANUS", "c1": 6400, "c2": 5600, "c3": 3600, "suspect": false}, {"code": "514-19-00", "name": "Partial internal sphincterectomy of fissure", "category": "RECTUM / ANUS", "c1": 4400, "c2": 3850, "c3": 2200, "suspect": false}, {"code": "532-13-00", "name": "Injection of sclerosing substance into haemorrhoid", "category": "RECTUM / ANUS", "c1": 1200, "c2": 1050, "c3": 600, "suspect": false}, {"code": "529-38-00", "name": "Rubber band ligation of haemorrhoid - three or more", "category": "RECTUM / ANUS", "c1": 1200, "c2": 1050, "c3": 600, "suspect": false}, {"code": "513-50-00", "name": "Evacuation of perianal haematoma", "category": "RECTUM / ANUS", "c1": 1600, "c2": 1400, "c3": 800, "suspect": false}, {"code": "513-27-01", "name": "Laying open of low anal fistula", "category": "RECTUM / ANUS", "c1": 4000, "c2": 3500, "c3": 2000, "suspect": false}, {"code": "513-27-02", "name": "Laying open of high anal fistula", "category": "RECTUM / ANUS", "c1": 7200, "c2": 6300, "c3": 4050, "suspect": false}, {"code": "513-28-00", "name": "Insertion of seton into high anal fistula and partial", "category": "RECTUM / ANUS", "c1": 6400, "c2": 5600, "c3": 3600, "suspect": false}, {"code": "513-45-01", "name": "Fistulography of anal fistula", "category": "RECTUM / ANUS", "c1": 1600, "c2": 1400, "c3": 800, "suspect": false}, {"code": "513-19-03", "name": "Biopsy of lesion of anus", "category": "RECTUM / ANUS", "c1": 1400, "c2": 800, "c3": 400, "suspect": false}, {"code": "513-27-00", "name": "Incision of septum of anus", "category": "RECTUM / ANUS", "c1": 1600, "c2": 1400, "c3": 800, "suspect": false}, {"code": "513-19-04", "name": "Excision of anal fissure", "category": "RECTUM / ANUS", "c1": 1600, "c2": 1400, "c3": 800, "suspect": false}, {"code": "459-16-03", "name": "Drainage of ischiorectal abscess", "category": "RECTUM / ANUS", "c1": 4400, "c2": 3850, "c3": 2200, "suspect": false}, {"code": "459-16-01", "name": "Drainage of perirectal abscess", "category": "RECTUM / ANUS", "c1": 4000, "c2": 3500, "c3": 2000, "suspect": false}, {"code": "513-19-05", "name": "Excision of pilonidal sinus and suture/skin graft", "category": "RECTUM / ANUS", "c1": 6400, "c2": 5600, "c3": 3600, "suspect": false}, {"code": "513-27-03", "name": "Laying open of pilonidal sinus", "category": "RECTUM / ANUS", "c1": 4000, "c2": 3500, "c3": 2000, "suspect": false}, {"code": "513-45-02", "name": "Injection of radiocontrast substance into pilonidal", "category": "RECTUM / ANUS", "c1": 1600, "c2": 1400, "c3": 800, "suspect": false}, {"code": "459-47-05", "name": "Pull-through operation for Hirschsprung's disease", "category": "RECTUM / ANUS", "c1": 24000, "c2": 21000, "c3": 15000, "suspect": false}, {"code": "513-27-04", "name": "Perineal anoplasty (Cut back)", "category": "RECTUM / ANUS", "c1": 4000, "c2": 3500, "c3": 2000, "suspect": false}, {"code": "513-51-04", "name": "Perineal anoplasty (Anal transplant)", "category": "RECTUM / ANUS", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "513-51-05", "name": "Anorectoplasty (abdominoperineal approach)", "category": "RECTUM / ANUS", "c1": 16000, "c2": 14000, "c3": 9000, "suspect": false}, {"code": "513-51-06", "name": "Anorectoplasty (sacroperineal approach)", "category": "RECTUM / ANUS", "c1": 12800, "c2": 11200, "c3": 3200, "suspect": false}, {"code": "459-19-01", "name": "Rectal polypectomy", "category": "RECTUM / ANUS", "c1": 2800, "c2": 2450, "c3": 1400, "suspect": false}, {"code": "459-19-05", "name": "Rectal biopsy (full thickness)", "category": "RECTUM / ANUS", "c1": 8000, "c2": 7000, "c3": 4500, "suspect": false}, {"code": "513-51-02", "name": "Anoplasty for stenosis: less than 1/3 circumference", "category": "RECTUM / ANUS", "c1": 8000, "c2": 7000, "c3": 4500, "suspect": false}, {"code": "513-51-03", "name": "Anoplasty for stenosis: more than 1/3 circumference", "category": "RECTUM / ANUS", "c1": 9800, "c2": 6300, "c3": 2800, "suspect": false}, {"code": "514-51-02", "name": "Repair of anal sphincter using muscle transposition", "category": "RECTUM / ANUS", "c1": 16000, "c2": 14000, "c3": 9000, "suspect": false}, {"code": "477-19-04", "name": "Unilateral adrenalectomy", "category": "OTHER", "c1": 112200, "c2": 9800, "c3": 6300, "suspect": true}, {"code": "477-19-03", "name": "Partial adrenalectomy", "category": "OTHER", "c1": 111200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "477-19-02", "name": "Excision of lesion of aberrant adrenal tissue", "category": "OTHER", "c1": 12800, "c2": 11200, "c3": 3200, "suspect": false}, {"code": "477-19-01", "name": "Excision of lesion of adrenal gland", "category": "OTHER", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "464-19-04", "name": "Hemihepatectomy (Rt Lobe)", "category": "OTHER", "c1": 24000, "c2": 15000, "c3": 7500, "suspect": false}, {"code": "465-19-04", "name": "Hemihepatectomy (Lt Lobe)", "category": "OTHER", "c1": 24000, "c2": 21000, "c3": 15000, "suspect": false}, {"code": "463-19-03", "name": "Wedge excision of liver", "category": "OTHER", "c1": 11200, "c2": 9800, "c3": 5600, "suspect": false}, {"code": "463-16-03", "name": "Marsupialisation of lesion of liver", "category": "OTHER", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "463-51-01", "name": "Repair of simple laceration of liver", "category": "OTHER", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "463-16-02", "name": "Open drainage of liver", "category": "OTHER", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "469-50-01", "name": "Open removal of intrahepatic duct calculi", "category": "OTHER", "c1": 20000, "c2": 17500, "c3": 12500, "suspect": false}, {"code": "442-18-06", "name": "Diagnostic endoscopic examination of liver", "category": "OTHER", "c1": 8000, "c2": 7000, "c3": 4500, "suspect": false}, {"code": "463-16-00", "name": "Percutaneous drainage of liver", "category": "OTHER", "c1": 3600, "c2": 3150, "c3": 1800, "suspect": false}, {"code": "477-19-06", "name": "Laparoscopic adrenalectomy", "category": "OTHER", "c1": 16000, "c2": 14000, "c3": 9000, "suspect": false}, {"code": "464-19-05", "name": "Extended hemihepatectomy (Rt Lobe)", "category": "OTHER", "c1": 28000, "c2": 24500, "c3": 17500, "suspect": false}, {"code": "465-19-05", "name": "Extended hemihepatectomy (Lt Lobe)", "category": "OTHER", "c1": 28000, "c2": 24500, "c3": 17500, "suspect": false}, {"code": "463-19-05", "name": "Median Segmentectomy", "category": "OTHER", "c1": 28000, "c2": 24500, "c3": 17500, "suspect": false}, {"code": "469-47-01", "name": "Hilar resection with bile duct reconstruction", "category": "OTHER", "c1": 280000, "c2": 24500, "c3": 17500, "suspect": true}, {"code": "463-19-02", "name": "Biopsyofliver(needle)", "category": "OTHER", "c1": 2400, "c2": 2100, "c3": 1200, "suspect": false}, {"code": "467-19-01", "name": "Open cholecystectomy", "category": "OTHER", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "467-19-02", "name": "Partial cholecystectomy", "category": "OTHER", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "467-19-05", "name": "Cholecystectomy with sphincteroplasty", "category": "OTHER", "c1": 16000, "c2": 14000, "c3": 9000, "suspect": false}, {"code": "467-05-01", "name": "Anastomosis of gall bladder to intestine", "category": "OTHER", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "467-47-01", "name": "Cholecystostomy", "category": "OTHER", "c1": 8000, "c2": 7000, "c3": 4500, "suspect": false}, {"code": "470-19-04", "name": "Partial excision of bile duct and", "category": "OTHER", "c1": 16000, "c2": 14000, "c3": 9000, "suspect": false}, {"code": "470-47-02", "name": "Peripheral reconstruction of bile duct", "category": "OTHER", "c1": 16000, "c2": 14000, "c3": 9000, "suspect": false}, {"code": "472-51-05", "name": "Sphincteroplasty of bile duct and pancreatic duct", "category": "OTHER", "c1": 12800, "c2": 11200, "c3": 3200, "suspect": false}, {"code": "472-27-03", "name": "Sphincterotomy of bile duct and pancreatic duct", "category": "OTHER", "c1": 11200, "c2": 3200, "c3": 3200, "suspect": false}, {"code": "472-19-01", "name": "Biopsy of lesion of ampulla of Vater using duodenal", "category": "OTHER", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "470-18-02", "name": "Operative choledochoscopy", "category": "OTHER", "c1": 2400, "c2": 2100, "c3": 1200, "suspect": false}, {"code": "472-27-01", "name": "Endoscopic sphincterotomy of sphincter of Oddi and", "category": "OTHER", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "472-27-01", "name": "Endoscopic sphincterotomy of sphincter of Oddi and", "category": "OTHER", "c1": 8000, "c2": 7000, "c3": 4500, "suspect": false}, {"code": "472-27-02", "name": "Endoscopic sphincterotomy of accessory ampulla of", "category": "OTHER", "c1": 7200, "c2": 6300, "c3": 4050, "suspect": false}, {"code": "470-50-02", "name": "Endoscopic retrograde removal of tubal prosthesis", "category": "OTHER", "c1": 2400, "c2": 2100, "c3": 1200, "suspect": false}, {"code": "470-14-01", "name": "Endoscopic dilation of bile duct", "category": "OTHER", "c1": 3600, "c2": 3150, "c3": 1800, "suspect": false}, {"code": "474-28-00", "name": "Endoscopic retrograde insertion of tubal prosthesis", "category": "OTHER", "c1": 4000, "c2": 3500, "c3": 2000, "suspect": false}, {"code": "473-16-03", "name": "Endoscopic retrograde drainage of lesion of pancreas", "category": "OTHER", "c1": 4000, "c2": 3500, "c3": 2000, "suspect": false}, {"code": "474-14-00", "name": "Endoscopic retrograde dilation of pancreatic duct", "category": "OTHER", "c1": 4000, "c2": 3500, "c3": 2000, "suspect": false}, {"code": "471-19-01", "name": "Endoscopic retrograde cholangiopancreatography", "category": "OTHER", "c1": 4000, "c2": 3500, "c3": 2000, "suspect": false}, {"code": "470-19-01", "name": "Endoscopic retrograde cholangiography and biopsy", "category": "OTHER", "c1": 4000, "c2": 3500, "c3": 2000, "suspect": false}, {"code": "474-19-02", "name": "Endoscopic retrograde pancreatography and biopsy", "category": "OTHER", "c1": 4000, "c2": 3500, "c3": 2000, "suspect": false}, {"code": "470-14-02", "name": "Percutaneous dilation of anastomosis of bile duct and", "category": "OTHER", "c1": 7200, "c2": 6300, "c3": 4050, "suspect": false}, {"code": "469-28-41", "name": "Percutaneous insertion of tubal prosthesis into hepatic", "category": "OTHER", "c1": 7200, "c2": 6300, "c3": 4050, "suspect": false}, {"code": "470-28-41", "name": "Percutaneous insertion of tubal prosthesis into", "category": "OTHER", "c1": 7200, "c2": 6300, "c3": 4050, "suspect": true}, {"code": "470-50-04", "name": "Endoscopic removal of calculus from bile duct along", "category": "OTHER", "c1": 4000, "c2": 3500, "c3": 2000, "suspect": false}, {"code": "470-50-03", "name": "Percutaneous removal of calculus from bile duct", "category": "OTHER", "c1": 4000, "c2": 3500, "c3": 2000, "suspect": true}, {"code": "471-18-80", "name": "Percutaneous cholangiography", "category": "OTHER", "c1": 2000, "c2": 1750, "c3": 1000, "suspect": false}, {"code": "473-19-06", "name": "Total pancreatectomy", "category": "OTHER", "c1": 20000, "c2": 12500, "c3": 6250, "suspect": false}, {"code": "473-19-07", "name": "Pancreaticoduodenectomy and excision of", "category": "OTHER", "c1": 28000, "c2": 24500, "c3": 17500, "suspect": false}, {"code": "473-19-05", "name": "Subtotal pancreatectomy", "category": "OTHER", "c1": 14000, "c2": 9000, "c3": 4000, "suspect": false}, {"code": "473-19-03", "name": "Excision of lesion of pancreas", "category": "OTHER", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "473-19-02", "name": "Open biopsy of lesion of pancreas", "category": "OTHER", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "473-16-02", "name": "Percutaneous drainage of lesion of pancreas", "category": "OTHER", "c1": 6400, "c2": 6600, "c3": 3600, "suspect": true}, {"code": "473-16-02", "name": "Diagnostic percutaneous aspiration of lesion of", "category": "OTHER", "c1": 6400, "c2": 5600, "c3": 3600, "suspect": false}, {"code": "474-21-01", "name": "Percutaneous puncture of pancreatic duct and", "category": "OTHER", "c1": 6400, "c2": 5600, "c3": 3600, "suspect": false}, {"code": "476-19-02", "name": "Total splenectomy", "category": "OTHER", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "476-19-05", "name": "Partial splenectomy", "category": "OTHER", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "469-47-03", "name": "Kasai operation", "category": "OTHER", "c1": 20000, "c2": 17500, "c3": 12500, "suspect": false}, {"code": "442-18-04", "name": "Explor.lap, intraoperative cholangiography, liver", "category": "OTHER", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "442-18-03", "name": "Explor.lap, liver biopsy", "category": "OTHER", "c1": 8000, "c2": 7000, "c3": 4500, "suspect": false}, {"code": "470-19-03", "name": "Excision of choledochal cyst", "category": "OTHER", "c1": 16000, "c2": 14000, "c3": 9000, "suspect": false}, {"code": "467-19-03", "name": "Laparoscopic cholecystectomy", "category": "OTHER", "c1": 12800, "c2": 11200, "c3": 3200, "suspect": false}, {"code": "467-19-06", "name": "Laparoscopic cholecystectomy with intraoperative", "category": "OTHER", "c1": 16000, "c2": 14000, "c3": 9000, "suspect": false}, {"code": "467-19-07", "name": "Laparoscopic cholecystectomy explor common bile", "category": "OTHER", "c1": 20000, "c2": 17500, "c3": 12500, "suspect": false}, {"code": "428-15-02", "name": "Proximal gastric vagotomy including selective", "category": "MISCELLANEOUS", "c1": 12800, "c2": 11200, "c3": 3200, "suspect": false}, {"code": "438-51-02", "name": "Repair of rupture of diaphragm, transabdominal", "category": "ABDOMINAL WALL", "c1": 12800, "c2": 11200, "c3": 3200, "suspect": false}, {"code": "438-51-01", "name": "Plication of diaphragm, transabdominal", "category": "ABDOMINAL WALL", "c1": 12800, "c2": 11200, "c3": 3200, "suspect": false}, {"code": "438-51-04", "name": "Closure of fistula of diaphragm, transabdominal", "category": "ABDOMINAL WALL", "c1": 12800, "c2": 11200, "c3": 3200, "suspect": false}, {"code": "438-51-03", "name": "Repair of congenital diaphragmatic hernia,", "category": "ABDOMINAL WALL", "c1": 12800, "c2": 11200, "c3": 3200, "suspect": false}, {"code": "406-51-01", "name": "Primary repair ofinguinal hernia", "category": "ABDOMINAL WALL", "c1": 6400, "c2": 5600, "c3": 3600, "suspect": false}, {"code": "406-51-02", "name": "Strangulated hernia repair", "category": "ABDOMINAL WALL", "c1": 6400, "c2": 5600, "c3": 3600, "suspect": false}, {"code": "406-51-04", "name": "Repair of recurrent inguinal hernia", "category": "ABDOMINAL WALL", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "406-51-02", "name": "Primary repair of femoral hernia", "category": "ABDOMINAL WALL", "c1": 6400, "c2": 5600, "c3": 3600, "suspect": false}, {"code": "406-51-05", "name": "Repair of recurrent femoral hernia", "category": "ABDOMINAL WALL", "c1": 8000, "c2": 7000, "c3": 4500, "suspect": false}, {"code": "405-51-02", "name": "Repair of umbilical hernia", "category": "ABDOMINAL WALL", "c1": 6400, "c2": 6600, "c3": 3000, "suspect": true}, {"code": "405-51-01", "name": "Incisional herniorrhaphy", "category": "ABDOMINAL WALL", "c1": 7200, "c2": 6300, "c3": 4050, "suspect": false}, {"code": "405-51-03", "name": "Repair of ventral hernia", "category": "ABDOMINAL WALL", "c1": 7200, "c2": 6300, "c3": 4050, "suspect": false}, {"code": "403-19-01", "name": "Excision of fistula of urachus", "category": "ABDOMINAL WALL", "c1": 7200, "c2": 6300, "c3": 4050, "suspect": false}, {"code": "405-51-04", "name": "Primary closure of omphalocele or gastroschisis", "category": "ABDOMINAL WALL", "c1": 8000, "c2": 7000, "c3": 4500, "suspect": false}, {"code": "405-51-05", "name": "Placement of artificial sac (Omphalocele or", "category": "ABDOMINAL WALL", "c1": 8000, "c2": 7000, "c3": 4500, "suspect": false}, {"code": "405-50-00", "name": "Removal of artificial sac anal closure of abdominal", "category": "ABDOMINAL WALL", "c1": 6400, "c2": 5600, "c3": 3600, "suspect": false}, {"code": "406-51-07", "name": "Laparoscopic hernioplasty unilateral", "category": "ABDOMINAL WALL", "c1": 12800, "c2": 11200, "c3": 3200, "suspect": false}, {"code": "406-51-06", "name": "Laparoscopic hernioplasty bilateral", "category": "ABDOMINAL WALL", "c1": 16000, "c2": 14000, "c3": 9000, "suspect": false}, {"code": "406-51-41", "name": "Insertion of prosthesis fro repair of diaphragm,", "category": "ABDOMINAL WALL", "c1": 12800, "c2": 11200, "c3": 3200, "suspect": false}, {"code": "439-16-03", "name": "Open drainage of subphrenic abscess", "category": "PERITONEUM", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "442-16-03", "name": "Open drainage of abdominal abscess", "category": "PERITONEUM", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "460-19-03", "name": "Excision or destruction of lesion of omentum", "category": "PERITONEUM", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": false}, {"code": "443-15-02", "name": "Lysis of adhesions of peritoneum-complicated", "category": "PERITONEUM", "c1": 9600, "c2": 8400, "c3": 5400, "suspect": true}, {"code": "443-15-01", "name": "Lysis of adhesions of peritoneum-simple", "category": "PERITONEUM", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "442-18-05", "name": "Laparoscpicexamination+biopsy", "category": "PERITONEUM", "c1": 8000, "c2": 7000, "c3": 4500, "suspect": true}, {"code": "443-15-03", "name": "Laparoscopic division of adhesion of peritoneum", "category": "PERITONEUM", "c1": 11200, "c2": 9800, "c3": 6300, "suspect": false}, {"code": "439-16-02", "name": "Image controlled percutaneous of subphrenic", "category": "PERITONEUM", "c1": 5600, "c2": 4900, "c3": 3150, "suspect": false}, {"code": "442-16-02", "name": "Image controlled percutaneous drainage of", "category": "PERITONEUM", "c1": 5600, "c2": 4900, "c3": 3150, "suspect": false}, {"code": "442-16-01", "name": "Paracentesis abdominis (Tapping)", "category": "PERITONEUM", "c1": 800, "c2": 0, "c3": 40, "suspect": false}, {"code": "442-03-00", "name": "Paracentesis abdominis (Diagnostic peritoneal", "category": "PERITONEUM", "c1": 2400, "c2": 2100, "c3": 1200, "suspect": false}, {"code": "442-29-00", "name": "Introduction of substance into peritoneal cavity,", "category": "PERITONEUM", "c1": 3600, "c2": 3150, "c3": 1800, "suspect": false}, {"code": "442-28-00", "name": "implantation of CAPD catheter", "category": "PERITONEUM", "c1": 4800, "c2": 4200, "c3": 2400, "suspect": false}, {"code": "478-65-00", "name": "Nephropexy", "category": "KIDNEY / RENAL PELVIS", "c1": 12000, "c2": 10500, "c3": 7500, "suspect": false}, {"code": "478-18-01", "name": "Exploration of kidney", "category": "KIDNEY / RENAL PELVIS", "c1": 16000, "c2": 14000, "c3": 10000, "suspect": false}, {"code": "478-16-02", "name": "Drain perirenal, renal abscess", "category": "KIDNEY / RENAL PELVIS", "c1": 12000, "c2": 10500, "c3": 7500, "suspect": false}, {"code": "478-47-03", "name": "Nephrostomy with drainage; open procedure", "category": "KIDNEY / RENAL PELVIS", "c1": 12000, "c2": 10500, "c3": 7500, "suspect": false}, {"code": "478-50-53", "name": "Nephrolithotomy", "category": "KIDNEY / RENAL PELVIS", "c1": 16000, "c2": 14000, "c3": 10000, "suspect": false}, {"code": "479-50-01", "name": "Pyelolithotomy", "category": "KIDNEY / RENAL PELVIS", "c1": 16000, "c2": 14000, "c3": 10000, "suspect": false}, {"code": "478-50-01", "name": "Pyelonephrolithotomy", "category": "KIDNEY / RENAL PELVIS", "c1": 16000, "c2": 14000, "c3": 10000, "suspect": false}, {"code": "478-19-01", "name": "Renal Biopsy; Percutaneous Needle", "category": "KIDNEY / RENAL PELVIS", "c1": 1600, "c2": 1400, "c3": 800, "suspect": false}, {"code": "478-19-02", "name": "Renal biopsy; surgical exposure with ultrasound", "category": "KIDNEY / RENAL PELVIS", "c1": 4000, "c2": 3500, "c3": 2000, "suspect": false}, {"code": "478-19-06", "name": "Nephrectomy simple", "category": "KIDNEY / RENAL PELVIS", "c1": 16000, "c2": 14000, "c3": 10000, "suspect": false}, {"code": "478-19-07", "name": "Nephrectomy radical with lymphadenectomy", "category": "KIDNEY / RENAL PELVIS", "c1": 20000, "c2": 17500, "c3": 12500, "suspect": false}, {"code": "478-19-08", "name": "Nephrectomy with total ureterectomy and bladder cuff", "category": "KIDNEY / RENAL PELVIS", "c1": 20000, "c2": 17500, "c3": 12500, "suspect": false}, {"code": "478-19-03", "name": "Excision/ unroofing renal cyst", "category": "KIDNEY / RENAL PELVIS", "c1": 12000, "c2": 10500, "c3": 7500, "suspect": false}, {"code": "478-16-01", "name": "Percutaneous aspiration renal cyst", "category": "KIDNEY / RENAL PELVIS", "c1": 2100, "c2": 1200, "c3": 600, "suspect": false}, {"code": "479-47-00", "name": "Pyeloplasty", "category": "KIDNEY / RENAL PELVIS", "c1": 20000, "c2": 17500, "c3": 12500, "suspect": false}, {"code": "478-47-02", "name": "Percutaneous nephrostomy with drainage", "category": "KIDNEY / RENAL PELVIS", "c1": 4000, "c2": 3500, "c3": 2900, "suspect": true}, {"code": "478-18-02", "name": "Renal endoscope through established nephrostomy", "category": "KIDNEY / RENAL PELVIS", "c1": 4000, "c2": 3500, "c3": 2000, "suspect": false}, {"code": "478-16-01", "name": "Donor nephrectomy with prepare allograft cadaver", "category": "KIDNEY / RENAL PELVIS", "c1": 16000, "c2": 14000, "c3": 10000, "suspect": false}, {"code": "478-16-02", "name": "Donor nephrectomy with prepare allograft living donor", "category": "KIDNEY / RENAL PELVIS", "c1": 16000, "c2": 14000, "c3": 10000, "suspect": false}, {"code": "478-16-02", "name": "Renal allotransplantation", "category": "KIDNEY / RENAL PELVIS", "c1": 20000, "c2": 17500, "c3": 12500, "suspect": false}, {"code": "478-16-02", "name": "Renal autotransplantation", "category": "KIDNEY / RENAL PELVIS", "c1": 20000, "c2": 17500, "c3": 12500, "suspect": false}, {"code": "478-16-03", "name": "Bilat Nephrectomy in recipient", "category": "KIDNEY / RENAL PELVIS", "c1": 20000, "c2": 17500, "c3": 12500, "suspect": false}, {"code": "478-16-05", "name": "Removal of transplanted renal allograft", "category": "KIDNEY / RENAL PELVIS", "c1": 8400, "c2": 6000, "c3": 3000, "suspect": false}, {"code": "480-69-00", "name": "Cutaneous ureterostomy", "category": "URETER", "c1": 9600, "c2": 8400, "c3": 6000, "suspect": false}, {"code": "480-19-01", "name": "Ureterectomy", "category": "URETER", "c1": 9600, "c2": 8400, "c3": 6000, "suspect": false}, {"code": "480-19-02", "name": "Ureterectomy total, Ectopic", "category": "URETER", "c1": 9600, "c2": 8400, "c3": 3000, "suspect": false}, {"code": "480-19-03", "name": "Ureterolysis for retroperitoneal fibrosis, retrocaval", "category": "URETER", "c1": 12000, "c2": 10500, "c3": 7500, "suspect": false}, {"code": "479-47-01", "name": "Ureteropyelostomy", "category": "URETER", "c1": 16000, "c2": 14000, "c3": 10000, "suspect": false}, {"code": "480-47-01", "name": "Ureteroureterostomy", "category": "URETER", "c1": 16000, "c2": 14000, "c3": 10000, "suspect": false}, {"code": "480-47-04", "name": "Ureteroneocystostomy", "category": "URETER", "c1": 16000, "c2": 14000, "c3": 10000, "suspect": false}, {"code": "480-47-05", "name": "Ureteroneocystostomy with bladder flap or bilateral", "category": "URETER", "c1": 16000, "c2": 14000, "c3": 10000, "suspect": false}, {"code": "480-47-03", "name": "Ureteroenterostomy", "category": "URETER", "c1": 16000, "c2": 14000, "c3": 10000, "suspect": false}, {"code": "450-47-02", "name": "Ureteroileal conduit Ileal bladder", "category": "URETER", "c1": 16000, "c2": 14000, "c3": 10000, "suspect": false}, {"code": "450-38-01", "name": "Closure ureterocutaneous fistula", "category": "URETER", "c1": 9600, "c2": 8400, "c3": 6000, "suspect": false}, {"code": "450-50-03", "name": "Ureterolithotomy upper, middle", "category": "URETER", "c1": 9600, "c2": 8400, "c3": 6000, "suspect": false}, {"code": "450-50-01", "name": "Ureterolithotomy lower one third", "category": "URETER", "c1": 9600, "c2": 8400, "c3": 6000, "suspect": false}, {"code": "509-51-01", "name": "Suture of wound or injury bladder", "category": "BLADDER", "c1": 8000, "c2": 7000, "c3": 5000, "suspect": false}, {"code": "509-69-02", "name": "Cystostomy and insertion of suprapubic tube into", "category": "BLADDER", "c1": 6400, "c2": 5600, "c3": 2000, "suspect": false}, {"code": "509-50-02", "name": "Open removal of calculus from bladder", "category": "BLADDER", "c1": 7200, "c2": 6300, "c3": 4500, "suspect": false}, {"code": "509-69-00", "name": "Cystostomy with drainage", "category": "BLADDER", "c1": 6400, "c2": 5600, "c3": 4000, "suspect": false}, {"code": "509-50-02", "name": "Cystolithotomy", "category": "BLADDER", "c1": 7200, "c2": 6300, "c3": 4500, "suspect": false}, {"code": "450-50-05", "name": "Transvesical ureterolithotomy", "category": "BLADDER", "c1": 11200, "c2": 9800, "c3": 7000, "suspect": false}, {"code": "403-19-03", "name": "Excision urachal cyst sinus with repair umbilical", "category": "BLADDER", "c1": 9600, "c2": 8400, "c3": 6000, "suspect": false}, {"code": "509-19-04", "name": "Cystostomy with excision bladder neck", "category": "BLADDER", "c1": 7200, "c2": 6300, "c3": 4500, "suspect": false}, {"code": "509-47-01", "name": "Cystostomy with excision bladder diverticulum", "category": "BLADDER", "c1": 16000, "c2": 14000, "c3": 10000, "suspect": false}, {"code": "509-19-01", "name": "Cystectomy; partial", "category": "BLADDER", "c1": 8000, "c2": 7000, "c3": 5000, "suspect": false}, {"code": "450-69-02", "name": "Total cystectomy with bilat pelvic lymphadenectomy", "category": "BLADDER", "c1": 24000, "c2": 1000, "c3": 15000, "suspect": true}, {"code": "450-69-03", "name": "Total cystectomy with bilat pelvic lymphadenectomy", "category": "BLADDER", "c1": 28000, "c2": 24500, "c3": 17500, "suspect": false}, {"code": "511-65-00", "name": "Anterior vesicourethropexy MMK", "category": "BLADDER", "c1": 8000, "c2": 7000, "c3": 5000, "suspect": false}, {"code": "509-65-00", "name": "Endoscopic bladder neck suspension (unclear)", "category": "BLADDER", "c1": 9600, "c2": 8400, "c3": 6000, "suspect": false}, {"code": "509-65-00", "name": "Pubovaginal sling", "category": "BLADDER", "c1": 11200, "c2": 9800, "c3": 7000, "suspect": false}, {"code": "509-38-01", "name": "Closure vesicovaginal fistula transvaginal", "category": "BLADDER", "c1": 9600, "c2": 8400, "c3": 6000, "suspect": false}, {"code": "509-38-02", "name": "Closure vesicovaginal fistula transvesicle", "category": "BLADDER", "c1": 11200, "c2": 9800, "c3": 7000, "suspect": false}, {"code": "509-38-03", "name": "Closure vesicovaginal fistula transabdominal with", "category": "BLADDER", "c1": 12000, "c2": 10500, "c3": 7500, "suspect": false}, {"code": "509-18-00", "name": "Cystourethroscopy examination", "category": "BLADDER", "c1": 1600, "c2": 1400, "c3": 800, "suspect": false}, {"code": "509-18-04", "name": "Cystoscope with ureteral catheterization", "category": "BLADDER", "c1": 2400, "c2": 2100, "c3": 1200, "suspect": false}, {"code": "509-18-00", "name": "Cystourethroscopy with biopsy", "category": "BLADDER", "c1": 2400, "c2": 2100, "c3": 1200, "suspect": true}, {"code": "509-13-00", "name": "Cystourethroscopy with fulguration", "category": "BLADDER", "c1": 2400, "c2": 2100, "c3": 1200, "suspect": false}, {"code": "509-18-07", "name": "Cystourethroscopy with resection medium bladder", "category": "BLADDER", "c1": 8000, "c2": 7000, "c3": 5000, "suspect": false}, {"code": "509-18-08", "name": "Cystourethroscopy with resection large bladder tumor", "category": "BLADDER", "c1": 9600, "c2": 6000, "c3": 3000, "suspect": false}, {"code": "511-18-02", "name": "Cystourethroscopy with internal urethrotomy (VIU)", "category": "BLADDER", "c1": 8000, "c2": 7000, "c3": 5000, "suspect": false}, {"code": "509-15-00", "name": "Cystourethroscopy with sphincterotomy", "category": "BLADDER", "c1": 7200, "c2": 6300, "c3": 4500, "suspect": false}, {"code": "480-14-00", "name": "Cystourethroscopy with dilatation stricture or stenosis", "category": "BLADDER", "c1": 7200, "c2": 6300, "c3": 4500, "suspect": false}, {"code": "480-13-00", "name": "Cystourethroscopy with excision or fulguration", "category": "BLADDER", "c1": 7200, "c2": 6300, "c3": 44500, "suspect": true}, {"code": "480-50-01", "name": "Cystourethroscopy with removal foreign body,", "category": "BLADDER", "c1": 2400, "c2": 2100, "c3": 1200, "suspect": false}, {"code": "480-50-03", "name": "Cystourethroscopy with ureteral stone extraction", "category": "BLADDER", "c1": 3600, "c2": 3150, "c3": 1800, "suspect": false}, {"code": "509-18-04", "name": "Cystourethroscopy with ureteral stent placement", "category": "BLADDER", "c1": 3600, "c2": 3150, "c3": 1800, "suspect": false}, {"code": "509-19-05", "name": "Transurethral resection of bladder neck", "category": "BLADDER", "c1": 12000, "c2": 10500, "c3": 7500, "suspect": false}, {"code": "507-19-02", "name": "Transurethral resection of prostate gland", "category": "BLADDER", "c1": 11200, "c2": 9800, "c3": 7000, "suspect": false}, {"code": "507-27-00", "name": "Transurethral incision of prostate", "category": "BLADDER", "c1": 9600, "c2": 8400, "c3": 6000, "suspect": false}, {"code": "509-50-01", "name": "Transurethral Cystolitholapaxy", "category": "BLADDER", "c1": 8000, "c2": 7000, "c3": 5000, "suspect": false}, {"code": "511-14-00", "name": "Dilatation of urethral stricture male/ female", "category": "URETHRA", "c1": 1200, "c2": 1050, "c3": 600, "suspect": false}, {"code": "511-18-01", "name": "Urethrotomy with removal calculi or foreign body", "category": "URETHRA", "c1": 4800, "c2": 4200, "c3": 2400, "suspect": false}, {"code": "511-27-00", "name": "Meatotomy", "category": "URETHRA", "c1": 1600, "c2": 1400, "c3": 800, "suspect": false}, {"code": "511-47-01", "name": "Meatoplasty with skin flap", "category": "URETHRA", "c1": 4800, "c2": 4200, "c3": 2400, "suspect": false}, {"code": "511-16-00", "name": "Drainage of deep periurethral abscess", "category": "URETHRA", "c1": 1600, "c2": 1400, "c3": 800, "suspect": false}, {"code": "511-19-01", "name": "Urethrectomy female", "category": "URETHRA", "c1": 8000, "c2": 7000, "c3": 5000, "suspect": false}, {"code": "511-13-00", "name": "Excision or fulguration urethral caruncle", "category": "URETHRA", "c1": 3200, "c2": 2800, "c3": 1600, "suspect": false}, {"code": "511-47-02", "name": "Urethroplasty post injury penile part", "category": "URETHRA", "c1": 9600, "c2": 8400, "c3": 6000, "suspect": false}, {"code": "511-47-03", "name": "Urethroplasty post injury prostatomembranous part", "category": "URETHRA", "c1": 16000, "c2": 14000, "c3": 10000, "suspect": false}, {"code": "502-19-01", "name": "Circumcision clamp procedure new bon", "category": "URETHRA", "c1": 1600, "c2": 1400, "c3": 800, "suspect": false}, {"code": "501-19-02", "name": "Surgical excision lesion or mass", "category": "URETHRA", "c1": 1600, "c2": 11400, "c3": 800, "suspect": true}, {"code": "501-05-01", "name": "Amputation of penis, partial", "category": "URETHRA", "c1": 7200, "c2": 6300, "c3": 4500, "suspect": false}, {"code": "501-02-02", "name": "Amputation of penis, complete", "category": "URETHRA", "c1": 9600, "c2": 8400, "c3": 6000, "suspect": false}, {"code": "501-02-03", "name": "Amputation of penis with bilateral inguinofemoral", "category": "URETHRA", "c1": 16000, "c2": 14000, "c3": 10000, "suspect": false}, {"code": "504-19-01", "name": "Testicular biopsy needle", "category": "URETHRA", "c1": 1400, "c2": 800, "c3": 400, "suspect": false}, {"code": "504-19-02", "name": "Testicular biopsy incisional", "category": "URETHRA", "c1": 2400, "c2": 2100, "c3": 1200, "suspect": false}, {"code": "504-19-03", "name": "Orchiectomy; simple, unilateral", "category": "URETHRA", "c1": 4000, "c2": 3500, "c3": 2000, "suspect": true}, {"code": "504-19-05", "name": "Orchiectomy; simple, bilateral", "category": "URETHRA", "c1": 6400, "c2": 5600, "c3": 4000, "suspect": false}, {"code": "504-19-04", "name": "Orchiectomy; inguinal, unilateral", "category": "URETHRA", "c1": 6400, "c2": 5600, "c3": 4000, "suspect": false}, {"code": "504-19-08", "name": "Orchiectomy, radical with retroperitoneal lymph node", "category": "URETHRA", "c1": 20000, "c2": 17500, "c3": 12500, "suspect": false}, {"code": "504-65-03", "name": "Orchidopexy bilateral", "category": "URETHRA", "c1": 9600, "c2": 8400, "c3": 6000, "suspect": false}, {"code": "504-51-00", "name": "Suture or repair testicular injury", "category": "URETHRA", "c1": 4400, "c2": 3850, "c3": 2200, "suspect": false}, {"code": "503-18-00", "name": "Exploration ofscrotum", "category": "URETHRA", "c1": 4400, "c2": 3850, "c3": 2200, "suspect": false}, {"code": "504-19-07", "name": "Radical orchidectomy (and bilateral)", "category": "URETHRA", "c1": 8000, "c2": 7000, "c3": 5000, "suspect": false}, {"code": "504-19-06", "name": "Orchidectomy (and bilateral)", "category": "URETHRA", "c1": 7200, "c2": 6300, "c3": 400, "suspect": true}, {"code": "504-65-02", "name": "Orchidopexy (for undescended testis)", "category": "URETHRA", "c1": 8000, "c2": 7000, "c3": 5000, "suspect": false}, {"code": "504-48-00", "name": "Reduction of torsion of testis and orchidopexy", "category": "URETHRA", "c1": 7200, "c2": 6300, "c3": 4500, "suspect": false}, {"code": "504-18-00", "name": "Exploration oftestis", "category": "URETHRA", "c1": 3600, "c2": 3150, "c3": 1800, "suspect": true}, {"code": "540-18-00", "name": "Exploration with or without biopsy", "category": "URETHRA", "c1": 4000, "c2": 3500, "c3": 2000, "suspect": false}, {"code": "540-19-00", "name": "Epididymectomy bilateral", "category": "URETHRA", "c1": 5600, "c2": 4900, "c3": 3500, "suspect": false}, {"code": "503-19-02", "name": "Excision hydrocele", "category": "URETHRA", "c1": 6400, "c2": 5600, "c3": 4000, "suspect": false}, {"code": "503-19-01", "name": "Excision of hydrocele sac", "category": "URETHRA", "c1": 6400, "c2": 5600, "c3": 4000, "suspect": false}, {"code": "503-51-00", "name": "Plication of hydrocele sac", "category": "URETHRA", "c1": 6400, "c2": 5600, "c3": 4000, "suspect": false}, {"code": "505-19-01", "name": "Vasectomy", "category": "URETHRA", "c1": 2400, "c2": 2100, "c3": 1200, "suspect": false}, {"code": "505-47-01", "name": "Vasectomy reversal, vasovasostomy simple", "category": "URETHRA", "c1": 12000, "c2": 1000, "c3": 7500, "suspect": true}, {"code": "505-47-02", "name": "Vasectomy reserval, vasovasostomy microsurgery", "category": "URETHRA", "c1": 12800, "c2": 10500, "c3": 8000, "suspect": false}, {"code": "503-19-04", "name": "Excision hydrocele or lesion of spermatic cord", "category": "URETHRA", "c1": 6400, "c2": 5600, "c3": 4000, "suspect": false}, {"code": "528-19-00", "name": "Excision varicocele or high ligation", "category": "URETHRA", "c1": 7200, "c2": 6300, "c3": 4500, "suspect": true}, {"code": "505-19-02", "name": "Vasectomy (and bilateral)", "category": "URETHRA", "c1": 2400, "c2": 2100, "c3": 1200, "suspect": false}, {"code": "528-38-00", "name": "Ligation of varicocele", "category": "URETHRA", "c1": 7200, "c2": 6300, "c3": 4500, "suspect": false}, {"code": "518-19-01", "name": "Biopsy prostate needle", "category": "URETHRA", "c1": 2400, "c2": 2100, "c3": 1200, "suspect": false}, {"code": "507-16-00", "name": "Prostatectomy, external drainage abscess", "category": "URETHRA", "c1": 4000, "c2": 3500, "c3": 2000, "suspect": false}, {"code": "507-19-04", "name": "Suprapubic or retropubic prostatectomy simple", "category": "URETHRA", "c1": 20000, "c2": 17500, "c3": 12500, "suspect": false}, {"code": "480-28-00", "name": "Therapeutic", "category": "URETHRA", "c1": 9600, "c2": 8400, "c3": 600, "suspect": true}, {"code": "524-13-20", "name": "Cauterization of lesion of ovary, bilateral,", "category": "OVARY", "c1": 8000, "c2": 7000, "c3": 8000, "suspect": true}, {"code": "524-13-10", "name": "Cauterization of lesion of ovary, bilateral, open", "category": "OVARY", "c1": 8000, "c2": 7000, "c3": 8000, "suspect": true}, {"code": "523-13-20", "name": "Cauterization of lesion of ovary, unilateral,", "category": "OVARY", "c1": 8000, "c2": 7000, "c3": 8000, "suspect": true}, {"code": "523-13-10", "name": "Cauterization of lesion of ovary, unilateral, open", "category": "OVARY", "c1": 8000, "c2": 7000, "c3": 8000, "suspect": true}, {"code": "524-16-20", "name": "Aspiration ofovarian cyst, bilateral,", "category": "OVARY", "c1": 9600, "c2": 8400, "c3": 9600, "suspect": true}, {"code": "524-16-10", "name": "Aspiration ofovarian cyst, bilateral, open", "category": "OVARY", "c1": 9600, "c2": 8400, "c3": 9600, "suspect": true}, {"code": "523-16-20", "name": "Aspiration of ovarian cyst, unilateral,", "category": "OVARY", "c1": 9600, "c2": 8400, "c3": 9600, "suspect": true}, {"code": "523-16-10", "name": "Aspiration of ovarian cyst, unilateral, open", "category": "OVARY", "c1": 9600, "c2": 8400, "c3": 9600, "suspect": true}, {"code": "524-16-11", "name": "Rupture of ovarian cyst or abscess, bilateral,", "category": "OVARY", "c1": 8000, "c2": 7000, "c3": 8000, "suspect": true}, {"code": "523-16-11", "name": "Rupture of ovarian cyst or abscess, unilateral,", "category": "OVARY", "c1": 8000, "c2": 7000, "c3": 8000, "suspect": true}, {"code": "524-19-20", "name": "Biopsy of ovary, bilateral, laparoscopic", "category": "OVARY", "c1": 9800, "c2": 11200, "c3": 9800, "suspect": true}, {"code": "524-19-10", "name": "Biopsy of ovary, bilateral, open", "category": "OVARY", "c1": 11200, "c2": 9800, "c3": 11200, "suspect": true}, {"code": "523-19-20", "name": "Biopsy of ovary, unilateral, laparoscopic", "category": "OVARY", "c1": 9600, "c2": 8400, "c3": 9600, "suspect": true}, {"code": "523-19-10", "name": "Biopsy of ovary, unilateral, open", "category": "OVARY", "c1": 9600, "c2": 8400, "c3": 9600, "suspect": true}, {"code": "524-19-21", "name": "Oophorectomy, bilateral, laparoscopic", "category": "OVARY", "c1": 11200, "c2": 9800, "c3": 11200, "suspect": true}, {"code": "524-19-11", "name": "Oophorectomy, bilateral, open", "category": "OVARY", "c1": 11200, "c2": 9800, "c3": 111200, "suspect": true}, {"code": "523-19-21", "name": "Oophorectomy, unilateral, laparoscopic", "category": "OVARY", "c1": 9600, "c2": 8400, "c3": 9600, "suspect": true}, {"code": "523-19-11", "name": "Oophorectomy, unilateral, open", "category": "OVARY", "c1": 9600, "c2": 8400, "c3": 9600, "suspect": true}, {"code": "524-19-22", "name": "Ovarian cystectomy, bilateral, laparoscopic", "category": "OVARY", "c1": 111200, "c2": 9800, "c3": 111200, "suspect": true}, {"code": "523-19-22", "name": "Ovarian cystectomy, unilateral, laparoscopic", "category": "OVARY", "c1": 9600, "c2": 8400, "c3": 9600, "suspect": true}, {"code": "523-19-12", "name": "Ovarian cystectomy, unilateral, open", "category": "OVARY", "c1": 9600, "c2": 8400, "c3": 9600, "suspect": true}, {"code": "524-19-23", "name": "Partial oophorectomy, bilateral, laparoscopic", "category": "OVARY", "c1": 11200, "c2": 9800, "c3": 111200, "suspect": true}, {"code": "524-19-13", "name": "Partial oophorectomy, bilateral, open", "category": "OVARY", "c1": 11200, "c2": 9800, "c3": 1200, "suspect": false}, {"code": "523-19-13", "name": "Partial oophorectomy, unilateral, open", "category": "OVARY", "c1": 9600, "c2": 8400, "c3": 9600, "suspect": true}, {"code": "524-19-24", "name": "Salpingo-oophorectomy, bilateral, laparoscopic", "category": "OVARY", "c1": 111200, "c2": 9800, "c3": 111200, "suspect": true}, {"code": "524-19-14", "name": "Salpingo-oophorectomy, bilateral, open", "category": "OVARY", "c1": 1200, "c2": 9800, "c3": 11200, "suspect": true}, {"code": "523-19-24", "name": "Salpingo-oophorectomy, unilateral,", "category": "OVARY", "c1": 9600, "c2": 8400, "c3": 9600, "suspect": true}, {"code": "523-19-14", "name": "Salping0-0ophorectomy, unilateral, open", "category": "OVARY", "c1": 9600, "c2": 8400, "c3": 9600, "suspect": true}, {"code": "524-19-25", "name": "Wedge resection of ovary, bilateral,", "category": "OVARY", "c1": 11200, "c2": 9800, "c3": 11200, "suspect": true}, {"code": "524-19-15", "name": "Wedge resection of ovary, bilateral, open", "category": "OVARY", "c1": 11200, "c2": 9800, "c3": 111200, "suspect": true}, {"code": "523-19-25", "name": "Wedge resection of ovary, unilateral,", "category": "OVARY", "c1": 9600, "c2": 8400, "c3": 9600, "suspect": true}, {"code": "523-19-15", "name": "Wedge resection of ovary, unilateral, open", "category": "OVARY", "c1": 9600, "c2": 8400, "c3": 9600, "suspect": true}, {"code": "524-27-20", "name": "Oocyte retrieval, bilateral, laparoscopic", "category": "OVARY", "c1": 8000, "c2": 7000, "c3": 8000, "suspect": true}, {"code": "524-27-40", "name": "Oocyte retrieval, bilateral, transvaginal", "category": "OVARY", "c1": 3200, "c2": 2800, "c3": 3200, "suspect": true}, {"code": "523-27-20", "name": "Oocyte retrieval, unilateral, laparoscopic", "category": "OVARY", "c1": 8000, "c2": 7000, "c3": 8000, "suspect": true}, {"code": "523-27-40", "name": "Oocyte retrieval, unilateral, transvaginal", "category": "OVARY", "c1": 3200, "c2": 22800, "c3": 3200, "suspect": true}, {"code": "524-27-21", "name": "Rupture ofovarian cyst or abscess, bilateral,", "category": "OVARY", "c1": 9600, "c2": 8400, "c3": 9600, "suspect": true}, {"code": "524-27-10", "name": "Rupture of ovarian cyst or abscess, bilateral,", "category": "OVARY", "c1": 9600, "c2": 8400, "c3": 9600, "suspect": true}, {"code": "523-27-21", "name": "Rupture ofovarian cyst or abscess, unilateral,", "category": "OVARY", "c1": 9600, "c2": 8400, "c3": 9600, "suspect": true}, {"code": "523-27-10", "name": "Rupture of ovarian cyst or abscess, unilateral,", "category": "OVARY", "c1": 9600, "c2": 8400, "c3": 9600, "suspect": true}, {"code": "524-49-10", "name": "Lysis of adhesions of ovary (and tube), bilateral,", "category": "OVARY", "c1": 9600, "c2": 8400, "c3": 9600, "suspect": true}, {"code": "523-49-10", "name": "Lysis of adhesions of ovary (and tube).", "category": "OVARY", "c1": 9600, "c2": 8400, "c3": 9600, "suspect": true}, {"code": "523-49-20", "name": "Lysis of adhesions of ovary (and tube),", "category": "OVARY", "c1": 9600, "c2": 8400, "c3": 9600, "suspect": true}, {"code": "524-51-20", "name": "Suture of ovary, bilateral, laparoscopic", "category": "OVARY", "c1": 9600, "c2": 8400, "c3": 9600, "suspect": true}, {"code": "524-51-10", "name": "Suture of ovary, bilateral, open", "category": "OVARY", "c1": 9600, "c2": 8400, "c3": 9600, "suspect": true}, {"code": "523-51-20", "name": "Suture of ovary, unilateral, laparoscopic", "category": "OVARY", "c1": 9600, "c2": 8400, "c3": 9600, "suspect": true}, {"code": "524-59-10", "name": "Transposition of ovary, bilateral", "category": "OVARY", "c1": 11200, "c2": 9800, "c3": 11200, "suspect": true}, {"code": "522-18-40", "name": "Insufflation of fallopian tube with gas, dye or", "category": "FALLOPIAN TUBE", "c1": 8000, "c2": 7000, "c3": 8000, "suspect": true}, {"code": "522-19-20", "name": "Biopsy offallopian tube, bilateral, laparoscopic", "category": "FALLOPIAN TUBE", "c1": 9600, "c2": 8400, "c3": 9600, "suspect": true}, {"code": "522-19-10", "name": "Biopsy of fallopian tube, bilateral, open", "category": "FALLOPIAN TUBE", "c1": 9600, "c2": 8400, "c3": 9600, "suspect": true}, {"code": "521-19-20", "name": "Biopsy of fallopian tube, unilateral, laparoscopic", "category": "FALLOPIAN TUBE", "c1": 9600, "c2": 8400, "c3": 9600, "suspect": true}, {"code": "522-19-21", "name": "Excision of hydatid cyst of Morgagni, bilateral,", "category": "FALLOPIAN TUBE", "c1": 9600, "c2": 8400, "c3": 9600, "suspect": true}];
+const COLS=[['c1','สิทธิ์ 1,2,3 (แพทย์แนะนำ)'],['c2','สิทธิ์ 1,2,3 (รพ.)'],['c3','สิทธิ์ 4 / 6']];
+DATA.forEach((r,i)=>r.id=i);
+let edits=JSON.parse(localStorage.getItem('df_edits')||'{}');
+let groups=JSON.parse(localStorage.getItem('df_groups')||'[]');
+let sel=new Set(); let view='all'; let activeGroup=null;
 
-  // ===== STOMACH (rows 20-35) =====
-  {code:"446-19-07", name:"Total gastrectomy with GI continuity", fee:20000, cat:"Stomach"},
-  {code:"446-19-03", name:"Partial gastrectomy with GI continuity, with or without vagotomy", fee:20000, cat:"Stomach"},
-  {code:"442-18-00", name:"Negative laparotomy exploratory adult", fee:9000, cat:"Exploratory"},
-  {code:"442-18-01", name:"Laparotomy exploratory, staging for biliary atresia", fee:12000, cat:"Exploratory"},
-  {code:"442-18-02", name:"Laparotomy staging for Hodgkins disease", fee:12000, cat:"Exploratory"},
-  {code:"446-19-01", name:"Open excision of lesion of stomach", fee:12000, cat:"Stomach"},
-  {code:"446-05-03", name:"Gastric bypass by anastomosis of stomach to duodenum", fee:14000, cat:"Stomach"},
-  {code:"446-05-05", name:"Gastric bypass by anastomosis of stomach to jejunum", fee:12000, cat:"Stomach"},
-  {code:"446-69-02", name:"Creation of permanent gastrostomy (mucosal lining)", fee:14000, cat:"Stomach"},
-  {code:"446-69-01", name:"Temporary gastrostomy (serosal lining)", fee:10000, cat:"Stomach"},
-  {code:"446-51-03", name:"Gastropexy", fee:12000, cat:"Stomach"},
-  {code:"446-51-02", name:"Closure of perforation of stomach", fee:12000, cat:"Stomach"},
-  {code:"446-50-01", name:"Open removal of foreign body from stomach", fee:12000, cat:"Stomach"},
-  {code:"447-27-00", name:"Pyloromyotomy", fee:12000, cat:"Stomach"},
-  {code:"447-51-00", name:"Pyloroplasty + vagotomy", fee:14000, cat:"Stomach"},
+function val(r,c){const e=edits[r.id]; return (e&&e[c]!=null)?e[c]:r[c];}
+function isEdited(r,c){const e=edits[r.id]; return e&&e[c]!=null;}
+function fmt(n){return n==null?'—':Number(n).toLocaleString('en-US');}
+function saveEdits(){localStorage.setItem('df_edits',JSON.stringify(edits));}
+function saveGroups(){localStorage.setItem('df_groups',JSON.stringify(groups));}
 
-  // ===== UPPER GI ENDOSCOPY (rows 38-45) =====
-  {code:"042-50-03", name:"Fiberoptic endoscopic snare removal of lesion of upper gastrointestinal tract", fee:4000, cat:"Upper GI Endoscopy"},
-  {code:"042-13-06", name:"Fiberoptic endoscopic laser destruction of lesion of upper gastrointestinal tract", fee:4000, cat:"Upper GI Endoscopy"},
-  {code:"042-13-04", name:"Fiberoptic endoscopic cauterisation of lesion of upper gastrointestinal tract", fee:4000, cat:"Upper GI Endoscopy"},
-  {code:"042-13-05", name:"Fiberoptic endoscopic sclerotherapy to lesion of upper gastrointestinal tract", fee:4000, cat:"Upper GI Endoscopy"},
-  {code:"042-28-40", name:"Fiberoptic endoscopic insertion of prosthesis into upper gastrointestinal tract", fee:4500, cat:"Upper GI Endoscopy"},
-  {code:"042-50-02", name:"Fiberoptic endoscopic removal of foreign body from upper gastrointestinal tract", fee:4000, cat:"Upper GI Endoscopy"},
-  {code:"384-14-00", name:"Fiberoptic endoscopic dilation of upper gastrointestinal tract (Esophagus)", fee:4000, cat:"Upper GI Endoscopy"},
-  {code:"042-18-02", name:"Fiberoptic endoscopic examination of upper gastrointestinal tract and biopsy of lesion", fee:3000, cat:"Upper GI Endoscopy"},
+// populate categories
+const cats=[...new Set(DATA.map(r=>r.category).filter(Boolean))].sort();
+const catSel=document.getElementById('cat');
+cats.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;catSel.appendChild(o);});
+document.getElementById('recCount').textContent=DATA.length;
 
-  // ===== DUODENUM (rows 48-56) =====
-  {code:"448-19-03", name:"Excision of lesion of duodenum", fee:14000, cat:"Duodenum"},
-  {code:"448-05-01", name:"Bypass of duodenum by anastomosis", fee:14000, cat:"Duodenum"},
-  {code:"448-19-01", name:"Open biopsy of lesion of duodenum", fee:14000, cat:"Duodenum"},
-  {code:"448-51-01", name:"Closure of perforation of duodenum", fee:12000, cat:"Duodenum"},
-  {code:"448-50-03", name:"Open removal of foreign body from duodenum", fee:12000, cat:"Duodenum"},
-  {code:"448-28-42", name:"Open insertion of tubal prosthesis into duodenum", fee:12000, cat:"Duodenum"},
-  {code:"448-27-01", name:"Incision of duodenum", fee:12000, cat:"Duodenum"},
-  {code:"448-53-01", name:"Correction of malrotation of duodenum", fee:14000, cat:"Duodenum"},
-  {code:"448-51-03", name:"Duodenoplasty", fee:14000, cat:"Duodenum"},
-
-  // ===== JEJUNUM / ILEUM (rows 59-81) =====
-  {code:"449-47-04", name:"Small bowel resection with anastomosis (Jejunum)", fee:12000, cat:"Jejunum / Ileum"},
-  {code:"450-47-04", name:"Small bowel resection with anastomosis (Ileum)", fee:12000, cat:"Jejunum / Ileum"},
-  {code:"449-19-03", name:"Excision of lesion of small bowel (Jejunum)", fee:12000, cat:"Jejunum / Ileum"},
-  {code:"450-19-03", name:"Excision of lesion of small bowel (Ileum)", fee:12000, cat:"Jejunum / Ileum"},
-  {code:"449-69-01", name:"Creation of jejunostomy", fee:12000, cat:"Jejunum / Ileum"},
-  {code:"449-55-01", name:"Revision of jejunostomy", fee:12000, cat:"Jejunum / Ileum"},
-  {code:"449-05-01", name:"Small bowel bypass by enteroenterostomy (Jejunum)", fee:12000, cat:"Jejunum / Ileum"},
-  {code:"450-05-01", name:"Small bowel bypass by enteroenterostomy (Ileum)", fee:12000, cat:"Jejunum / Ileum"},
-  {code:"449-19-02", name:"Open biopsy of small bowel lesion (Jejunum)", fee:12000, cat:"Jejunum / Ileum"},
-  {code:"450-19-02", name:"Open biopsy of small bowel lesion (Ileum)", fee:12000, cat:"Jejunum / Ileum"},
-  {code:"449-51-01", name:"Closure of perforation of small bowel (Jejunum)", fee:12000, cat:"Jejunum / Ileum"},
-  {code:"450-51-01", name:"Closure of perforation of small bowel (Ileum)", fee:12000, cat:"Jejunum / Ileum"},
-  {code:"450-19-03", name:"Excision of Meckel's diverticulum", fee:12000, cat:"Jejunum / Ileum"},
-  {code:"450-55-01", name:"Revision of ileostomy", fee:12000, cat:"Jejunum / Ileum"},
-  {code:"450-54-01", name:"Closure of ileostomy", fee:12000, cat:"Jejunum / Ileum"},
-  {code:"450-48-01", name:"Open reduction of intussusception of ileum", fee:12000, cat:"Jejunum / Ileum"},
-  {code:"450-51-02", name:"Plication of ileum", fee:12000, cat:"Jejunum / Ileum"},
-  {code:"450-51-03", name:"Strictureplasty of ileum", fee:12000, cat:"Jejunum / Ileum"},
-  {code:"449-47-01", name:"Enterostomy (Jejunum)", fee:12000, cat:"Jejunum / Ileum"},
-  {code:"450-47-01", name:"Enterostomy (Ileum)", fee:12000, cat:"Jejunum / Ileum"},
-
-  // ===== APPENDIX / CAECUM / COLON (rows 84-104) =====
-  {code:"452-19-01", name:"Appendicectomy (simple)", fee:9000, cat:"Appendix"},
-  {code:"452-19-02", name:"Appendicectomy (complicated)", fee:12000, cat:"Appendix"},
-  {code:"452-16-01", name:"Drainage of abscess of appendix", fee:9000, cat:"Appendix"},
-  {code:"066-19-03", name:"Panproctocolectomy and ileostomy", fee:30000, cat:"Colon"},
-  {code:"066-19-03", name:"Panproctocolectomy and anastomosis of ileum to anus and creation of pouch", fee:30000, cat:"Colon"},
-  {code:"453-19-03", name:"Total colectomy and anastomosis of ileum to rectum", fee:30000, cat:"Colon"},
-  {code:"453-19-03", name:"Total colectomy and ileostomy and creation of rectal fistula", fee:30000, cat:"Colon"},
-  {code:"453-19-03", name:"Total colectomy and ileostomy", fee:30000, cat:"Colon"},
-  {code:"453-19-05", name:"Extended hemicolectomy and anastomosis", fee:25000, cat:"Colon"},
-  {code:"453-49-02", name:"Extended hemicolectomy and ileostomy", fee:25000, cat:"Colon"},
-  {code:"453-19-04", name:"Hemicolectomy and anastomosis", fee:20000, cat:"Colon"},
-  {code:"453-19-04", name:"Hemicolectomy and ileostomy", fee:20000, cat:"Colon"},
-  {code:"456-19-02", name:"Transverse colectomy and anastomosis", fee:20000, cat:"Colon"},
-  {code:"456-19-01", name:"Transverse colectomy and ileostomy", fee:20000, cat:"Colon"},
-  {code:"458-19-02", name:"Sigmoid colectomy and anastomosis", fee:20000, cat:"Colon"},
-  {code:"458-19-02", name:"Sigmoid colectomy and ileostomy", fee:20000, cat:"Colon"},
-  {code:"453-19-07", name:"Colectomy and anastomosis", fee:20000, cat:"Colon"},
-  {code:"453-19-07", name:"Colectomy and ileostomy", fee:20000, cat:"Colon"},
-  {code:"453-19-03", name:"Segment resection of colon", fee:16000, cat:"Colon"},
-  {code:"453-19-02", name:"Wedge excision of lesion of colon", fee:12000, cat:"Colon"},
-  {code:"453-05-01", name:"Bypass of colon by anastomosis", fee:14000, cat:"Colon"},
-
-  // ===== COLON continued (rows 107-130) =====
-  {code:"454-69-01", name:"Tube caecostomy", fee:12000, cat:"Colon"},
-  {code:"453-69-01", name:"Colostomy", fee:12000, cat:"Colon"},
-  {code:"453-55-01", name:"Revision of colostomy", fee:12000, cat:"Colon"},
-  {code:"453-54-01", name:"Closure of colostomy", fee:12000, cat:"Colon"},
-  {code:"453-48-01", name:"Open reduction of intussusception of colon", fee:14000, cat:"Colon"},
-  {code:"453-48-01", name:"Open reduction of volvulus of colon", fee:14000, cat:"Colon"},
-  {code:"453-18-02", name:"Open colonoscopy incl. caecum", fee:12000, cat:"Colon"},
-  {code:"453-50-03", name:"Open removal of foreign body from colon", fee:12000, cat:"Colon"},
-  {code:"453-19-05", name:"Fiberoptic endoscopic snare removal of lesion of colon", fee:5000, cat:"Colonoscopy"},
-  {code:"453-13-07", name:"Fiberoptic endoscopic cauterisation of lesion of colon", fee:5000, cat:"Colonoscopy"},
-  {code:"453-13-01", name:"Fiberoptic endoscopic laser destruction of lesion of colon", fee:5000, cat:"Colonoscopy"},
-  {code:"453-14-01", name:"Fiberoptic endoscopic dilation of colon", fee:5000, cat:"Colonoscopy"},
-  {code:"453-50-01", name:"Fiberoptic endoscopic removal of foreign body from colon", fee:5000, cat:"Colonoscopy"},
-  {code:"453-19-01", name:"Fiberoptic endoscopic examination of colon and biopsy of lesion of colon", fee:4500, cat:"Colonoscopy"},
-  {code:"458-13-01", name:"Endoscopic cauterisation of lesion of rectosigmoid colon using fiberoptic sigmoidoscope", fee:3500, cat:"Colonoscopy"},
-  {code:"458-13-02", name:"Endoscopic laser destruction of lesion of rectosigmoid colon using fiberoptic sigmoidoscope", fee:4500, cat:"Colonoscopy"},
-  {code:"458-14-01", name:"Endoscopic dilation of rectosigmoid colon using fiberoptic sigmoidoscope", fee:4500, cat:"Colonoscopy"},
-  {code:"429-10-01", name:"Endoscopic coagulation of blood vessel of rectosigmoid colon using fiberoptic sigmoidoscope", fee:4500, cat:"Colonoscopy"},
-  {code:"458-28-41", name:"Endoscopic insertion of tubal prosthesis into lower rectosigmoid colon fiberoptic sigmoidoscope", fee:4500, cat:"Colonoscopy"},
-  {code:"457-18-03", name:"Diagnostic fiberoptic endoscopic examination of rectosigmoid colon (and biopsy of lesion)", fee:3500, cat:"Colonoscopy"},
-  {code:"457-19-05", name:"Endoscopic snare removal of lesion of sigmoid colon using rigid sigmoidoscope", fee:3000, cat:"Sigmoid Colon"},
-  {code:"457-13-01", name:"Endoscopic cauterisation of lesion of sigmoid colon using rigid sigmoidoscope", fee:3000, cat:"Sigmoid Colon"},
-  {code:"457-13-03", name:"Endoscopic laser destruction of lesion of sigmoid colon using rigid sigmoidoscope", fee:3000, cat:"Sigmoid Colon"},
-  {code:"457-13-02", name:"Endoscopic cryotherapy to lesion of sigmoid colon using rigid sigmoidoscope", fee:3000, cat:"Sigmoid Colon"},
-
-  // ===== SIGMOID COLON rigid scope (rows 131-137) =====
-  {code:"457-14-01", name:"Endoscopic dilation of sigmoid colon using rigid sigmoidoscope", fee:3000, cat:"Sigmoid Colon"},
-  {code:"457-50-01", name:"Endoscopic removal of foreign body from sigmoid colon using rigid sigmoidoscope", fee:3000, cat:"Sigmoid Colon"},
-  {code:"457-28-41", name:"Endoscopic insertion of tubal prosthesis into sigmoid colon using rigid sigmoidoscope", fee:3000, cat:"Sigmoid Colon"},
-  {code:"457-18-02", name:"Diagnostic endoscopic examination of sigmoid colon and biopsy of lesion using rigid sigmoidoscope", fee:3000, cat:"Sigmoid Colon"},
-  {code:"457-19-02", name:"Endoscopic examination of sigmoid colon and biopsy of lesion using rigid sigmoidoscope", fee:3000, cat:"Sigmoid Colon"},
-  {code:"457-18-01", name:"Fiberoptic endoscopic examination of sigmoid colon", fee:2000, cat:"Sigmoid Colon"},
-  {code:"452-19-03", name:"Laparoscopic appendectomy", fee:16000, cat:"Appendix"},
-
-  // ===== RECTUM / ANUS (rows 140-194) =====
-  {code:"459-19-06", name:"Abdominoperineal excision of rectum and end colostomy", fee:30000, cat:"Rectum / Anus"},
-  {code:"459-19-07", name:"Proctectomy and anastomosis of colon to anus", fee:30000, cat:"Rectum / Anus"},
-  {code:"459-19-06", name:"Anterior resection of rectum", fee:30000, cat:"Rectum / Anus"},
-  {code:"458-19-03", name:"Rectosigmoidectomy and closure of rectal stump and exteriorisation of bowel", fee:20000, cat:"Rectum / Anus"},
-  {code:"459-19-05", name:"Open excision of lesion of rectum", fee:14000, cat:"Rectum / Anus"},
-  {code:"459-65-01", name:"Anterior fixation of rectum", fee:14000, cat:"Rectum / Anus"},
-  {code:"459-65-02", name:"Posterior fixation of rectum", fee:14000, cat:"Rectum / Anus"},
-  {code:"514-51-04", name:"Abdominal repair of levator ani muscles", fee:20000, cat:"Rectum / Anus"},
-  {code:"459-19-04", name:"Transsphincteric excision of lesion of rectum", fee:14000, cat:"Rectum / Anus"},
-  {code:"458-19-03", name:"Rectosigmoidectomy and peranal anastomosis", fee:30000, cat:"Rectum / Anus"},
-  {code:"459-19-03", name:"Peranal excision of lesion of rectum", fee:8000, cat:"Rectum / Anus"},
-  {code:"514-28-01", name:"Insertion of encircling suture around perianal sphincter", fee:4500, cat:"Rectum / Anus"},
-  {code:"514-51-03", name:"Perineal plication of levator ani muscles and anal sphincters", fee:14000, cat:"Rectum / Anus"},
-  {code:"459-19-02", name:"Excision of mucosal prolapse of rectum", fee:4500, cat:"Rectum / Anus"},
-  {code:"459-18-01", name:"Examination of rectum under anaesthetic", fee:2000, cat:"Rectum / Anus"},
-  {code:"459-14-01", name:"Rectum stricture, dilation", fee:2000, cat:"Rectum / Anus"},
-  {code:"513-19-02", name:"Excision of polyps of anus", fee:3000, cat:"Anal / Haemorrhoid"},
-  {code:"513-19-01", name:"Excision of skin tag(s)", fee:2000, cat:"Anal / Haemorrhoid"},
-  {code:"513-19-07", name:"Radical excision of anal tumor", fee:10000, cat:"Anal / Haemorrhoid"},
-  {code:"514-27-00", name:"Incision of sphincter of anus", fee:2000, cat:"Anal / Haemorrhoid"},
-  {code:"513-13-00", name:"Cauterisation of lesion of anus", fee:2000, cat:"Anal / Haemorrhoid"},
-  {code:"514-51-01", name:"Repair of anal sphincter (Direct)", fee:10000, cat:"Anal / Haemorrhoid"},
-  {code:"459-47-04", name:"Reanastomosis of rectum to anal canal for correction of congenital atresia of rectum", fee:14000, cat:"Rectum / Anus"},
-  {code:"513-51-01", name:"Anal injury or fistula repair", fee:10000, cat:"Anal / Haemorrhoid"},
-  {code:"529-19-00", name:"Haemorrhoidectomy", fee:8000, cat:"Anal / Haemorrhoid"},
-  {code:"514-19-00", name:"Partial internal sphincterectomy of fissure", fee:5500, cat:"Anal / Haemorrhoid"},
-  {code:"532-13-00", name:"Injection of sclerosing substance into haemorrhoid three or more", fee:1500, cat:"Anal / Haemorrhoid"},
-  {code:"529-38-00", name:"Rubber band ligation of haemorrhoid - three or more", fee:1500, cat:"Anal / Haemorrhoid"},
-  {code:"513-50-00", name:"Evacuation of perianal haematoma", fee:2000, cat:"Anal / Haemorrhoid"},
-  {code:"513-27-01", name:"Laying open of low anal fistula", fee:5000, cat:"Anal / Haemorrhoid"},
-  {code:"513-27-02", name:"Laying open of high anal fistula", fee:9000, cat:"Anal / Haemorrhoid"},
-  {code:"513-28-00", name:"Insertion of seton into high anal fistula and partial laying open of tract", fee:8000, cat:"Anal / Haemorrhoid"},
-  {code:"513-45-01", name:"Fistulography of anal fistula", fee:2000, cat:"Anal / Haemorrhoid"},
-  {code:"513-19-03", name:"Biopsy of lesion of anus", fee:2000, cat:"Anal / Haemorrhoid"},
-  {code:"513-27-00", name:"Incision of septum of anus", fee:2000, cat:"Anal / Haemorrhoid"},
-  {code:"513-19-04", name:"Excision of anal fissure", fee:2000, cat:"Anal / Haemorrhoid"},
-  {code:"459-16-03", name:"Drainage of ischiorectal abscess", fee:5500, cat:"Anal / Haemorrhoid"},
-  {code:"513-16-00", name:"Drainage of perianal abscess", fee:3000, cat:"Anal / Haemorrhoid"},
-  {code:"459-16-01", name:"Drainage of perirectal abscess", fee:5000, cat:"Anal / Haemorrhoid"},
-  {code:"513-19-05", name:"Excision of pilonidal sinus and suture/skin graft", fee:8000, cat:"Anal / Haemorrhoid"},
-  {code:"513-27-03", name:"Laying open of pilonidal sinus", fee:5000, cat:"Anal / Haemorrhoid"},
-  {code:"513-45-02", name:"Injection of radiocontrast substance into pilonidal sinus", fee:2000, cat:"Anal / Haemorrhoid"},
-  {code:"459-47-05", name:"Pull-through operation for Hirschsprung's disease", fee:30000, cat:"Rectum / Anus"},
-  {code:"513-27-04", name:"Perineal anoplasty (Cut back)", fee:5000, cat:"Rectum / Anus"},
-  {code:"513-51-04", name:"Perineal anoplasty (Anal transplant)", fee:12000, cat:"Rectum / Anus"},
-  {code:"513-51-05", name:"Anorectoplasty (abdominoperineal approach)", fee:20000, cat:"Rectum / Anus"},
-  {code:"513-51-06", name:"Anorectoplasty (sacroperineal approach)", fee:16000, cat:"Rectum / Anus"},
-  {code:"513-51-07", name:"Anorectoplasty (sacroabdominalperineal approach)", fee:30000, cat:"Rectum / Anus"},
-  {code:"459-19-01", name:"Rectal polypectomy", fee:3500, cat:"Rectum / Anus"},
-  {code:"459-19-05", name:"Rectal biopsy (full thickness)", fee:10000, cat:"Rectum / Anus"},
-  {code:"513-51-02", name:"Anoplasty for stenosis: less than 1/3 circumference", fee:10000, cat:"Rectum / Anus"},
-  {code:"513-51-03", name:"Anoplasty for stenosis: more than 1/3 circumference", fee:14000, cat:"Rectum / Anus"},
-  {code:"514-51-02", name:"Repair of anal sphincter using muscle transposition", fee:20000, cat:"Rectum / Anus"},
-
-  // ===== OTHER / ADRENAL (rows 197-201) =====
-  {code:"477-19-05", name:"Bilateral adrenalectomy", fee:14000, cat:"Adrenal"},
-  {code:"477-19-04", name:"Unilateral adrenalectomy", fee:14000, cat:"Adrenal"},
-  {code:"477-19-03", name:"Partial adrenalectomy", fee:14000, cat:"Adrenal"},
-  {code:"477-19-02", name:"Excision of lesion of aberrant adrenal tissue", fee:16000, cat:"Adrenal"},
-  {code:"477-19-01", name:"Excision of lesion of adrenal gland", fee:14000, cat:"Adrenal"},
-  {code:"477-19-06", name:"Laparoscopic adrenalectomy", fee:20000, cat:"Adrenal"},
-
-  // ===== LIVER / HEPATOBILIARY (rows 202-227) =====
-  {code:"464-19-04", name:"Hemihepatectomy (Rt Lobe)", fee:30000, cat:"Liver"},
-  {code:"465-19-04", name:"Hemihepatectomy (Lt Lobe)", fee:30000, cat:"Liver"},
-  {code:"463-19-04", name:"Resection of segment of liver", fee:20000, cat:"Liver"},
-  {code:"463-19-03", name:"Wedge excision of liver", fee:14000, cat:"Liver"},
-  {code:"463-16-03", name:"Marsupialisation of lesion of liver", fee:12000, cat:"Liver"},
-  {code:"463-51-01", name:"Repair of simple laceration of liver", fee:14000, cat:"Liver"},
-  {code:"463-16-02", name:"Open drainage of liver", fee:12000, cat:"Liver"},
-  {code:"469-50-01", name:"Open removal of intrahepatic duct calculi", fee:25000, cat:"Liver"},
-  {code:"442-18-06", name:"Diagnostic endoscopic examination of liver", fee:10000, cat:"Liver"},
-  {code:"463-16-00", name:"Percutaneous drainage of liver", fee:4500, cat:"Liver"},
-  {code:"464-19-05", name:"Extended hemihepatectomy (Rt Lobe)", fee:35000, cat:"Liver"},
-  {code:"465-19-05", name:"Extended hemihepatectomy (Lt Lobe)", fee:35000, cat:"Liver"},
-  {code:"463-19-05", name:"Median Segmentectomy", fee:35000, cat:"Liver"},
-  {code:"469-47-01", name:"Hilar resection with bile duct reconstruction", fee:35000, cat:"Liver"},
-  {code:"463-19-02", name:"Biopsy of liver (needle)", fee:3000, cat:"Liver"},
-
-  // ===== CHOLECYSTECTOMY (rows 220-227) =====
-  {code:"467-19-01", name:"Open cholecystectomy", fee:14000, cat:"Gallbladder"},
-  {code:"467-19-04", name:"Open cholecystectomy and exploration of common bile duct", fee:16000, cat:"Gallbladder"},
-  {code:"467-19-02", name:"Partial cholecystectomy", fee:12000, cat:"Gallbladder"},
-  {code:"467-19-05", name:"Cholecystectomy with sphincteroplasty", fee:20000, cat:"Gallbladder"},
-  {code:"467-05-01", name:"Anastomosis of gall bladder to intestine (cholecystoenteric bypass)", fee:14000, cat:"Gallbladder"},
-  {code:"467-47-01", name:"Cholecystostomy", fee:10000, cat:"Gallbladder"},
-  {code:"461-19-03", name:"Laparoscopic cholecystectomy", fee:16000, cat:"Gallbladder"},
-  {code:"461-19-07", name:"Laparoscopic cholecystectomy with intraoperative cholangiography", fee:20000, cat:"Gallbladder"},
-  {code:"461-19-07", name:"Laparoscopic cholecystectomy - explor common bile duct", fee:25000, cat:"Gallbladder"},
-
-  // ===== BILE DUCT (rows 226-255) =====
-  {code:"470-19-04", name:"Partial excision of bile duct and choledochoduodenostomy / jejunostomy", fee:20000, cat:"Bile Duct"},
-  {code:"470-19-02", name:"Partial excision of bile duct and end to end anastomosis of bile duct", fee:20000, cat:"Bile Duct"},
-  {code:"470-47-02", name:"Peripheral reconstruction of bile duct", fee:20000, cat:"Bile Duct"},
-  {code:"470-27-01", name:"Open choledocholithotomy for recurrent stone", fee:20000, cat:"Bile Duct"},
-  {code:"472-51-05", name:"Sphincteroplasty of bile duct and pancreatic duct using duodenal approach", fee:16000, cat:"Bile Duct"},
-  {code:"472-51-06", name:"Sphincterotomy of bile duct and pancreatic duct using duodenal approach", fee:18000, cat:"Bile Duct"},
-  {code:"472-19-01", name:"Biopsy of lesion of ampulla of Vater using duodenal approach", fee:14000, cat:"Bile Duct"},
-  {code:"470-18-02", name:"Operative choledochoscopy", fee:3000, cat:"Bile Duct"},
-  {code:"472-27-01", name:"Endoscopic sphincterotomy of sphincter of Oddi and removal of calculus", fee:12000, cat:"Bile Duct"},
-  {code:"472-27-01", name:"Endoscopic sphincterotomy of sphincter of Oddi and insertion of tubal prosthesis into bile duct", fee:10500, cat:"Bile Duct"},
-  {code:"472-08-41", name:"Endoscopic sphincterotomy of sphincter of Oddi and insertion of tubal prosthesis into bile duct", fee:10500, cat:"Bile Duct"},
-  {code:"472-27-02", name:"Endoscopic sphincterotomy of accessory ampulla of Vater", fee:9000, cat:"Bile Duct"},
-  {code:"470-50-02", name:"Endoscopic retrograde removal of tubal prosthesis from bile duct", fee:3500, cat:"Bile Duct"},
-  {code:"470-14-01", name:"Endoscopic dilation of bile duct", fee:4500, cat:"Bile Duct"},
-  {code:"470-19-03", name:"Excision of choledochal cyst", fee:20000, cat:"Bile Duct"},
-  {code:"470-14-02", name:"Percutaneous dilation of anastomosis of bile duct and insertion of tubal prosthetic", fee:9000, cat:"Bile Duct"},
-  {code:"469-28-41", name:"Percutaneous insertion of tubal prosthesis into hepatic duct(s)", fee:9000, cat:"Bile Duct"},
-  {code:"470-28-41", name:"Percutaneous insertion of tubal prosthesis into common bile duct", fee:9000, cat:"Bile Duct"},
-  {code:"470-50-01", name:"Removal of percutaneously inserted tubal prosthesis from bile duct", fee:2000, cat:"Bile Duct"},
-  {code:"470-50-04", name:"Endoscopic removal of calculus from bile duct along T-tube tract", fee:5000, cat:"Bile Duct"},
-  {code:"470-50-03", name:"Percutaneous removal of calculus from bile duct along T-tube tract", fee:5000, cat:"Bile Duct"},
-
-  // ===== ERCP / ENDOSCOPIC BILIARY-PANCREATIC (rows 242-256) =====
-  {code:"474-28-00", name:"Endoscopic retrograde insertion of tubal prosthesis into pancreatic duct", fee:5000, cat:"ERCP"},
-  {code:"474-50-00", name:"Endoscopic retrograde removal of calculus from pancreatic duct", fee:5000, cat:"ERCP"},
-  {code:"473-16-03", name:"Endoscopic retrograde drainage of lesion of pancreas", fee:5000, cat:"ERCP"},
-  {code:"474-14-00", name:"Endoscopic retrograde dilation of pancreatic duct", fee:5000, cat:"ERCP"},
-  {code:"471-18-B1", name:"Endoscopic retrograde cholangiopancreatography (ERCP)", fee:5000, cat:"ERCP"},
-  {code:"471-19-01", name:"ERCP and biopsy of lesion of biliary or pancreatic system", fee:5000, cat:"ERCP"},
-  {code:"470-19-01", name:"Endoscopic retrograde cholangiography and biopsy of lesion of bile duct", fee:5000, cat:"ERCP"},
-  {code:"474-19-02", name:"Endoscopic retrograde pancreatography and biopsy of lesion of pancreas", fee:5000, cat:"ERCP"},
-
-  // ===== CHOLANGIOGRAPHY / PANCREAS (rows 257-268) =====
-  {code:"471-18-A2", name:"Cholangiography T-tube (intra operative)", fee:2000, cat:"Biliary / Pancreas"},
-  {code:"471-18-60", name:"Percutaneous cholangiography", fee:2500, cat:"Biliary / Pancreas"},
-  {code:"473-19-06", name:"Total pancreatectomy", fee:25000, cat:"Biliary / Pancreas"},
-  {code:"473-19-05", name:"Pancreaticoduodenectomy and excision of surrounding tissue", fee:35000, cat:"Biliary / Pancreas"},
-  {code:"473-19-05", name:"Subtotal pancreatectomy", fee:20000, cat:"Biliary / Pancreas"},
-  {code:"473-19-03", name:"Excision of lesion of pancreas", fee:14000, cat:"Biliary / Pancreas"},
-  {code:"473-19-06", name:"Cystenterostomy for pancreatic pseudocyst", fee:16000, cat:"Biliary / Pancreas"},
-  {code:"473-19-06", name:"Open biopsy of pancreas", fee:12000, cat:"Biliary / Pancreas"},
-  {code:"473-18-02", name:"Percutaneous drainage of lesion of pancreas", fee:8000, cat:"Biliary / Pancreas"},
-  {code:"473-18-02", name:"Diagnostic percutaneous aspiration of lesion of pancreas", fee:8000, cat:"Biliary / Pancreas"},
-  {code:"474-21-01", name:"Percutaneous puncture of pancreatic duct and pancreatography", fee:8000, cat:"Biliary / Pancreas"},
-  {code:"476-19-05", name:"Total splenectomy", fee:14000, cat:"Spleen"},
-  {code:"476-19-05", name:"Partial splenectomy", fee:14000, cat:"Spleen"},
-  {code:"476-51-02", name:"Splenorrhaphy", fee:14000, cat:"Spleen"},
-
-  // ===== KASAI / EXPLOR LAP (rows 269-275) =====
-  {code:"469-47-03", name:"Kasai operation", fee:25000, cat:"Liver"},
-  {code:"449-18-04", name:"Explor.lap, intraoperative cholangiography, liver biopsy", fee:12000, cat:"Exploratory"},
-  {code:"449-18-03", name:"Explor.lap, liver biopsy", fee:10000, cat:"Exploratory"},
-
-  // ===== MISCELLANEOUS =====
-  {code:"426-18-02", name:"Proximal gastric vagotomy including selective vagotomy parietal cell vagotomy", fee:18000, cat:"Stomach"},
-
-  // ===== ABDOMINAL WALL (rows 280-305) =====
-  {code:"438-51-02", name:"Repair of rupture of diaphragm, transabdominal", fee:16000, cat:"Abdominal Wall"},
-  {code:"438-51-01", name:"Plication of diaphragm, transabdominal", fee:16000, cat:"Abdominal Wall"},
-  {code:"438-51-04", name:"Closure of fistula of diaphragm, transabdominal", fee:16000, cat:"Abdominal Wall"},
-  {code:"438-51-03", name:"Repair of congenital diaphragmatic hernia, transabdominal", fee:16000, cat:"Abdominal Wall"},
-  {code:"438-51-41", name:"Insertion of prosthesis to repair diaphragm, transabdominal", fee:16000, cat:"Abdominal Wall"},
-
-  // ===== HERNIA (rows 289-305) =====
-  {code:"405-51-01", name:"Primary repair of inguinal hernia", fee:8000, cat:"Hernia"},
-  {code:"405-51-02", name:"Strangulated hernia repair", fee:8000, cat:"Hernia"},
-  {code:"405-51-04", name:"Repair of recurrent inguinal hernia", fee:12000, cat:"Hernia"},
-  {code:"405-51-02", name:"Primary repair of femoral hernia", fee:8000, cat:"Hernia"},
-  {code:"405-51-05", name:"Repair of recurrent femoral hernia", fee:10000, cat:"Hernia"},
-  {code:"405-51-09", name:"Repair of umbilical hernia", fee:8000, cat:"Hernia"},
-  {code:"405-51-07", name:"Incisional herniorrhaphy", fee:9000, cat:"Hernia"},
-  {code:"405-51-03", name:"Repair of ventral hernia", fee:9000, cat:"Hernia"},
-  {code:"403-19-02", name:"Excision of fistula of omphalomesenteric duct", fee:9000, cat:"Hernia"},
-  {code:"403-19-02", name:"Excision of fistula of urachus", fee:9000, cat:"Hernia"},
-  {code:"405-51-02", name:"Primary closure of omphalocele or gastroschisis", fee:9000, cat:"Hernia"},
-  {code:"403-51-02", name:"Repair of artificial sac (Omphalocele or gastroschisis)", fee:10000, cat:"Hernia"},
-  {code:"405-50-00", name:"Removal of artificial sac and closure of abdominal wall", fee:8000, cat:"Hernia"},
-  {code:"503-19-03", name:"Hydrocelectomy (inguinal approach)", fee:9000, cat:"Hernia"},
-  {code:"405-51-07", name:"Laparoscopic hernioplasty unilateral", fee:18000, cat:"Hernia"},
-  {code:"405-51-06", name:"Laparoscopic hernioplasty bilateral", fee:20000, cat:"Hernia"},
-
-  // ===== PERITONEUM (rows 308-321) =====
-  {code:"439-16-03", name:"Open drainage of subphrenic abscess", fee:12000, cat:"Peritoneum"},
-  {code:"442-16-03", name:"Open drainage of abdominal abscess", fee:12000, cat:"Peritoneum"},
-  {code:"460-19-03", name:"Excision or destruction of lesion of omentum", fee:12000, cat:"Peritoneum"},
-  {code:"443-15-02", name:"Lysis of adhesions of peritoneum-complicated", fee:12000, cat:"Peritoneum"},
-  {code:"443-15-01", name:"Lysis of adhesions of peritoneum-simple", fee:14000, cat:"Peritoneum"},
-  {code:"442-18-05", name:"Laparoscopic examination+biopsy", fee:10000, cat:"Peritoneum"},
-  {code:"443-15-03", name:"Laparoscopic division of adhesion of peritoneum", fee:14000, cat:"Peritoneum"},
-  {code:"439-16-02", name:"Image controlled percutaneous drainage of subphrenic abscess", fee:7000, cat:"Peritoneum"},
-  {code:"530-16-00", name:"Image controlled percutaneous drainage of pelvic abscess", fee:7000, cat:"Peritoneum"},
-  {code:"442-16-02", name:"Image controlled percutaneous drainage of abdominal abscess", fee:7000, cat:"Peritoneum"},
-  {code:"442-16-01", name:"Paracentesis abdominis (Tapping)", fee:1000, cat:"Peritoneum"},
-  {code:"442-03-00", name:"Paracentesis abdominis (Diagnostic peritoneal lavage)", fee:3000, cat:"Peritoneum"},
-  {code:"442-29-00", name:"Introduction of substance into peritoneal cavity", fee:4500, cat:"Peritoneum"},
-  {code:"442-28-00", name:"Implantation of CAPD catheter", fee:6000, cat:"Peritoneum"},
-];
-
-// Category color map
-const catColors = {
-  "Oesophagus": "#845ef7",
-  "Stomach": "#3b5bdb",
-  "Exploratory": "#495057",
-  "Upper GI Endoscopy": "#7048e8",
-  "Duodenum": "#2f9e44",
-  "Jejunum / Ileum": "#20c997",
-  "Appendix": "#74c0fc",
-  "Colon": "#f59f00",
-  "Colonoscopy": "#ff6b6b",
-  "Sigmoid Colon": "#e67700",
-  "Rectum / Anus": "#c92a2a",
-  "Anal / Haemorrhoid": "#d6336c",
-  "Adrenal": "#ae3ec9",
-  "Liver": "#0c8599",
-  "Gallbladder": "#1098ad",
-  "Bile Duct": "#5c7cfa",
-  "ERCP": "#4dabf7",
-  "Biliary / Pancreas": "#20c997",
-  "Spleen": "#e599f7",
-  "Abdominal Wall": "#868e96",
-  "Hernia": "#ffa94d",
-  "Peritoneum": "#69db7c",
-};
-
-// Keyword alias map
-const aliases = {
-  "appendectomy": ["appendicectomy","appendix","laparoscopic appendectomy"],
-  "appendicectomy": ["appendectomy","appendix"],
-  "egd": ["endoscopic","fiberoptic","upper gastrointestinal","esophago","gastro","duodeno"],
-  "colono": ["endoscopic","colonoscopy","colon","colonoscopic","fiberoptic endoscopic","rectosigmoid"],
-  "sigmoidec": ["sigmoid colectomy","sigmoid","resection of sigmoid"],
-  "colec": ["resection of colon","colectomy","hemicolectomy","colon"],
-  "haemorrhoid": ["hemorrhoid","haemorrhoidectomy","hemorrhoidectomy","rubber band","ligation"],
-  "hemorrhoid": ["haemorrhoid","haemorrhoidectomy","rubber band"],
-  "cholecyst": ["cholecystectomy","gallbladder","cholecystostomy"],
-  "gallbladder": ["cholecystectomy","cholecyst"],
-  "lap chol": ["laparoscopic cholecystectomy"],
-  "ercp": ["sphincterotomy","sphincteroplasty","sphincter of oddi","endoscopic retrograde","bile duct","cholangiopancreatography"],
-  "whipple": ["pancreaticoduodenectomy"],
-  "apo": ["appendectomy","appendicectomy"],
-  "hx": ["haemorrhoidectomy","hemorrhoidectomy"],
-  "gastrectomy": ["gastric","stomach","gastrectomy"],
-  "oesophag": ["esophag","oesophagectomy","esophagectomy","pharynx"],
-  "esophag": ["oesophag","oesophagectomy","esophagectomy"],
-  "hepat": ["liver","hemihepatectomy","hepatectomy","hepatic"],
-  "liver": ["hepat","hemihepatectomy","hepatic","laceration of liver"],
-  "spleen": ["splenectomy","splenorrhaphy"],
-  "splenectomy": ["spleen","splenorrhaphy"],
-  "hernia": ["hernioplasty","herniorrhaphy","inguinal","femoral","umbilical","ventral","incisional"],
-  "lap": ["laparoscopic"],
-  "laparotomy": ["exploratory","negative laparotomy","staging"],
-  "explor": ["exploratory","laparotomy","exploration"],
-  "fistula": ["fistulography","laying open","seton","anal fistula"],
-  "abscess": ["drainage","ischiorectal","perianal","perirectal","subphrenic","abdominal abscess"],
-  "pilonidal": ["pilonidal sinus","skin graft"],
-  "hirschsprung": ["pull-through"],
-  "pancreat": ["pancreaticoduodenectomy","pancreatectomy","pancreas","pancreatic"],
-  "kasai": ["kasai operation"],
-  "capd": ["capd catheter","peritoneal"],
-  "tapping": ["paracentesis"],
-  "paracentesis": ["tapping","peritoneal lavage"],
-  "adhesion": ["lysis","adhesions","peritoneum"],
-  "meckel": ["meckel's diverticulum"],
-  "intussusception": ["reduction of intussusception"],
-  "volvulus": ["reduction of volvulus"],
-  "stoma": ["colostomy","ileostomy","jejunostomy","gastrostomy","enterostomy","caecostomy"],
-};
-
-function expandQuery(q) {
-  const lower = q.toLowerCase();
-  let terms = [lower];
-  for (const [key, vals] of Object.entries(aliases)) {
-    if (lower.includes(key)) {
-      terms = [...terms, ...vals.map(v => v.toLowerCase())];
-    }
+function currentRows(){
+  if(view==='groups' && activeGroup!=null){
+    const g=groups[activeGroup]; return g.ids.map(id=>DATA[id]).filter(Boolean);
   }
-  return [...new Set(terms)];
+  let rows=DATA.slice();
+  const q=document.getElementById('q').value.trim().toLowerCase();
+  const cat=document.getElementById('cat').value;
+  const clean=document.getElementById('onlyClean').checked;
+  if(q) rows=rows.filter(r=>(r.name||'').toLowerCase().includes(q)||r.code.toLowerCase().includes(q));
+  if(cat) rows=rows.filter(r=>r.category===cat);
+  if(clean) rows=rows.filter(r=>!r.suspect);
+  const sb=document.getElementById('sortBy').value;
+  rows.sort((a,b)=>{
+    if(sb==='name')return (a.name||'').localeCompare(b.name||'');
+    if(sb==='code')return a.code.localeCompare(b.code);
+    return (val(b,sb)||0)-(val(a,sb)||0);
+  });
+  return rows;
 }
 
-function scoreMatch(proc, terms) {
-  const nameL = proc.name.toLowerCase();
-  const codeL = proc.code.toLowerCase();
-  const catL = proc.cat.toLowerCase();
-  let score = 0;
-  for (const t of terms) {
-    if (codeL === t) score += 100;
-    if (nameL.includes(t)) score += nameL.startsWith(t) ? 30 : 15;
-    if (codeL.includes(t)) score += 20;
-    if (catL.includes(t)) score += 5;
+function render(){
+  renderChips();
+  const rows=currentRows();
+  document.getElementById('count').textContent=
+    view==='groups'&&activeGroup!=null? `กลุ่ม "${groups[activeGroup].name}" — ${rows.length} หัตถการ`
+    : `แสดง ${rows.length} รายการ`;
+  if(!rows.length){document.getElementById('tableWrap').innerHTML='<div class="empty">ไม่พบรายการ</div>';return;}
+  let h='<table><thead><tr><th></th><th>รหัส ICD-10-TM</th><th>หัตถการ</th>';
+  COLS.forEach(c=>h+=`<th class="num">${c[1]}</th>`);
+  h+='</tr></thead><tbody>';
+  rows.forEach(r=>{
+    h+=`<tr><td><input type="checkbox" class="chk" ${sel.has(r.id)?'checked':''} onchange="toggle(${r.id})"></td>`;
+    h+=`<td class="code">${r.code}${r.suspect?' <span class="flag" title="ค่าจาก OCR อาจคลาดเคลื่อน โปรดตรวจสอบกับ PDF ต้นฉบับ — แก้ไขได้โดยคลิกที่ตัวเลข">⚠︎</span>':''}</td>`;
+    h+=`<td>${r.name||'<i style=color:#64748b>(ไม่มีชื่อ)</i>'}${r.category?`<br><span class="cat">${r.category}</span>`:''}</td>`;
+    COLS.forEach(c=>{h+=`<td class="num"><span class="fee editable ${isEdited(r,c[0])?'edited':''}" onclick="editCell(this,${r.id},'${c[0]}')">${fmt(val(r,c[0]))}</span></td>`;});
+    h+='</tr>';
+  });
+  h+='</tbody>';
+  if(view==='groups'&&activeGroup!=null){
+    let s1=0,s2=0,s3=0; rows.forEach(r=>{s1+=val(r,'c1')||0;s2+=val(r,'c2')||0;s3+=val(r,'c3')||0;});
+    h+=`<tfoot><tr style="font-weight:700;border-top:2px solid var(--acc2)"><td></td><td colspan="2">รวมทั้งกลุ่ม</td><td class="num">${fmt(s1)}</td><td class="num">${fmt(s2)}</td><td class="num">${fmt(s3)}</td></tr></tfoot>`;
   }
-  return score;
+  h+='</table>';
+  document.getElementById('tableWrap').innerHTML=h;
 }
 
-function highlight(text, terms) {
-  let out = text;
-  for (const t of terms) {
-    if (!t || t.length < 2) continue;
-    const re = new RegExp('(' + t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + ')', 'gi');
-    out = out.replace(re, '<mark>$1</mark>');
+function editCell(el,id,c){
+  const cur=val(DATA[id],c);
+  const inp=document.createElement('input');
+  inp.value=cur==null?'':cur; inp.style.width='80px'; inp.style.textAlign='right';
+  el.replaceWith(inp); inp.focus(); inp.select();
+  function commit(){
+    let v=inp.value.replace(/[^\d]/g,'');
+    edits[id]=edits[id]||{}; edits[id][c]= v===''?null:parseInt(v);
+    if(edits[id][c]===DATA[id][c]) delete edits[id][c];
+    saveEdits(); render(); updateBar();
   }
-  return out;
+  inp.onblur=commit;
+  inp.onkeydown=e=>{if(e.key==='Enter')inp.blur();if(e.key==='Escape'){inp.value=cur==null?'':cur;inp.blur();}};
 }
 
-// Build category dropdown
-const cats = [...new Set(DB.map(d => d.cat))].sort();
-const catSelect = document.getElementById('catSelect');
-cats.forEach(cat => {
-  const opt = document.createElement('option');
-  opt.value = cat;
-  opt.textContent = cat;
-  catSelect.appendChild(opt);
-});
-
-// Favourites (stored in localStorage)
-let favs = new Set();
-try { favs = new Set(JSON.parse(localStorage.getItem('mrh_favs') || '[]')); } catch(e){}
-function saveFavs() {
-  try { localStorage.setItem('mrh_favs', JSON.stringify([...favs])); } catch(e){}
+function toggle(id){sel.has(id)?sel.delete(id):sel.add(id);updateBar();}
+function clearSel(){sel.clear();updateBar();render();}
+function updateBar(){
+  document.getElementById('selBar').classList.toggle('show',sel.size>0);
+  document.getElementById('selN').textContent=sel.size;
+  let t1=0,t2=0,t3=0; sel.forEach(id=>{t1+=val(DATA[id],'c1')||0;t2+=val(DATA[id],'c2')||0;t3+=val(DATA[id],'c3')||0;});
+  document.getElementById('t1').textContent=fmt(t1);
+  document.getElementById('t2').textContent=fmt(t2);
+  document.getElementById('t3').textContent=fmt(t3);
 }
-function favKey(proc) { return proc.code + '||' + proc.name; }
 
-// Filter state
-let activeCat = '';
-let showFavsOnly = false;
-
-catSelect.addEventListener('change', () => {
-  activeCat = catSelect.value;
+function setView(v){
+  view=v; activeGroup=null;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.view===v));
+  document.getElementById('searchControls').style.display=v==='all'?'flex':'none';
   render();
-});
-
-const favFilterBtn = document.getElementById('favFilterBtn');
-favFilterBtn.addEventListener('click', () => {
-  showFavsOnly = !showFavsOnly;
-  favFilterBtn.classList.toggle('active', showFavsOnly);
-  render();
-});
-
-// Delegate fav star clicks
-document.getElementById('results').addEventListener('click', e => {
-  const btn = e.target.closest('.fav-btn');
-  if (!btn) return;
-  const key = btn.dataset.key;
-  if (favs.has(key)) favs.delete(key);
-  else favs.add(key);
-  saveFavs();
-  btn.classList.toggle('active', favs.has(key));
-  btn.textContent = favs.has(key) ? '⭐' : '☆';
-  btn.closest('.result-card').classList.toggle('favourited', favs.has(key));
-  if (showFavsOnly) render();
-});
-
-document.getElementById('totalCount').textContent = DB.length;
-
-function render() {
-  const raw = document.getElementById('searchInput').value.trim();
-  const results = document.getElementById('results');
-  const countEl = document.getElementById('resultCount');
-
-  let filtered = DB;
-  if (activeCat) filtered = filtered.filter(d => d.cat === activeCat);
-  if (showFavsOnly) filtered = filtered.filter(d => favs.has(favKey(d)));
-
-  if (!raw) {
-    countEl.textContent = filtered.length;
-    results.innerHTML = filtered.map(proc => renderCard(proc, [])).join('');
-    return;
-  }
-
-  const terms = expandQuery(raw);
-  let scored = filtered
-    .map(proc => ({ proc, score: scoreMatch(proc, terms) }))
-    .filter(({score}) => score > 0)
-    .sort((a, b) => b.score - a.score);
-
-  countEl.textContent = scored.length;
-
-  if (!scored.length) {
-    results.innerHTML = `<div class="empty-state">
-      <div class="empty-icon">🔍</div>
-      <h3>No procedures found</h3>
-      <p>Try <span class="kbd-hint">EGD</span>, <span class="kbd-hint">colono</span>, <span class="kbd-hint">appendectomy</span>, or a code like <span class="kbd-hint">452-19-03</span></p>
-    </div>`;
-    return;
-  }
-
-  results.innerHTML = scored.map(({proc}) => renderCard(proc, terms)).join('');
 }
-
-function renderCard(proc, terms) {
-  const nameHL = terms.length ? highlight(proc.name, terms) : proc.name;
-  const codeHL = terms.length ? highlight(proc.code, terms) : proc.code;
-  const color = catColors[proc.cat] || '#888';
-  const key = favKey(proc);
-  const isFav = favs.has(key);
-  return `<div class="result-card${isFav ? ' favourited' : ''}">
-    <button class="fav-btn${isFav ? ' active' : ''}" data-key="${key.replace(/"/g,'&quot;')}" title="Favourite">${isFav ? '⭐' : '☆'}</button>
-    <div>
-      <div class="proc-name">${nameHL}</div>
-      <div class="proc-meta">
-        <span class="code-tag">${codeHL}</span>
-        <span class="cat-tag" style="background:${color}22;color:${color}">${proc.cat}</span>
-      </div>
-    </div>
-    <div class="fee-col">
-      <div class="fee-amount">${proc.fee.toLocaleString()}</div>
-      <div class="fee-label">THB (DF)</div>
-    </div>
-  </div>`;
+function renderChips(){
+  const wrap=document.getElementById('groupChips');
+  if(view!=='groups'){wrap.innerHTML='';return;}
+  if(!groups.length){wrap.innerHTML='<div class="empty" style="width:100%">ยังไม่มีกลุ่ม — ไปที่ "รายการทั้งหมด" เลือกหัตถการแล้วกด "สร้างกลุ่ม"</div>';return;}
+  let h='';
+  groups.forEach((g,i)=>{h+=`<div class="chip ${activeGroup===i?'active':''}" onclick="openGroup(${i})">${g.name} <span style="opacity:.6">(${g.ids.length})</span> <span class="x" onclick="event.stopPropagation();delGroup(${i})">×</span></div>`;});
+  wrap.innerHTML=h;
 }
+function openGroup(i){activeGroup=activeGroup===i?null:i;render();}
+function delGroup(i){if(confirm('ลบกลุ่ม "'+groups[i].name+'"?')){groups.splice(i,1);activeGroup=null;saveGroups();render();}}
 
-document.getElementById('searchInput').addEventListener('input', render);
+function openGroupModal(){if(!sel.size)return;document.getElementById('gName').value='';document.getElementById('groupModal').classList.add('show');document.getElementById('gName').focus();}
+function closeGroupModal(){document.getElementById('groupModal').classList.remove('show');}
+function saveGroup(){
+  const n=document.getElementById('gName').value.trim(); if(!n){alert('กรุณาตั้งชื่อกลุ่ม');return;}
+  groups.push({name:n,ids:[...sel]}); saveGroups(); closeGroupModal(); clearSel();
+  setView('groups'); activeGroup=groups.length-1; render();
+}
+document.getElementById('groupModal').addEventListener('click',e=>{if(e.target.id==='groupModal')closeGroupModal();});
 render();
 </script>
 </body>
