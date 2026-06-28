@@ -2,11 +2,12 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
 <title>ค้นหา DF — Mongkut Rayong Hospital</title>
 <style>
 :root{--bg:#0f172a;--card:#1e293b;--card2:#273449;--line:#334155;--txt:#e2e8f0;--mut:#94a3b8;--acc:#38bdf8;--acc2:#0ea5e9;--warn:#fbbf24;--ok:#34d399;--danger:#f87171}
 *{box-sizing:border-box}
+html,body{touch-action:pan-x pan-y;-ms-touch-action:pan-x pan-y}
 body{margin:0;font-family:-apple-system,"Segoe UI","Noto Sans Thai",Tahoma,sans-serif;background:var(--bg);color:var(--txt);font-size:15px}
 header{position:sticky;top:0;z-index:20;background:linear-gradient(180deg,#0f172a,#0f172af2);backdrop-filter:blur(6px);border-bottom:1px solid var(--line);padding:14px 18px}
 .htop{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
@@ -254,6 +255,18 @@ function saveGroup(){
   setView('groups'); activeGroup=groups.length-1; render();
 }
 document.getElementById('groupModal').addEventListener('click',e=>{if(e.target.id==='groupModal')closeGroupModal();});
+
+// ----- block zoom (pinch + double-tap), keep scrolling & inputs working -----
+['gesturestart','gesturechange','gestureend'].forEach(ev=>
+  document.addEventListener(ev,e=>e.preventDefault(),{passive:false}));
+document.addEventListener('touchmove',e=>{ if(e.touches.length>1) e.preventDefault(); },{passive:false});
+let _lastTap=0;
+document.addEventListener('touchend',e=>{
+  const now=Date.now();
+  if(now-_lastTap<=300){ e.preventDefault(); }
+  _lastTap=now;
+},{passive:false});
+
 render();
 </script>
 </body>
