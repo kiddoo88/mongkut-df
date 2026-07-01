@@ -18,7 +18,8 @@ h1{font-size:18px;margin:0;font-weight:700}
 .tab.active{background:var(--acc2);border-color:var(--acc2);color:#022;font-weight:600}
 .controls{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;align-items:center}
 input,select{background:var(--card);border:1px solid var(--line);color:var(--txt);padding:10px 12px;border-radius:8px;font-size:14px;font-family:inherit}
-#q{flex:1;min-width:220px}
+#q{flex:1;min-width:200px}
+#cat{flex:0 0 auto;max-width:240px}
 .btn{background:var(--acc2);color:#022;border:none;padding:9px 14px;border-radius:8px;cursor:pointer;font-weight:600;font-size:13px;font-family:inherit}
 .btn.ghost{background:var(--card);color:var(--txt);border:1px solid var(--line);font-weight:500}
 .btn.sm{padding:5px 9px;font-size:12px}
@@ -62,7 +63,8 @@ label.f{font-size:12px;color:var(--mut)}
   .tabs{margin-left:0;width:100%}
   .tab{flex:1;text-align:center}
   .controls{gap:8px}
-  #q,#cat,#sortBy{flex:1 1 100%;min-width:0}
+  #q{flex:1 1 100%;min-width:0}
+  #cat{flex:1 1 100%;min-width:0}
   /* table -> cards */
   table,tbody,tfoot,tr,td{display:block;width:100%}
   thead{display:none}
@@ -102,13 +104,6 @@ label.f{font-size:12px;color:var(--mut)}
   <div class="controls" id="searchControls">
     <input id="q" placeholder="🔍 ค้นหาด้วยชื่อหัตถการ หรือรหัส ICD-10-TM..." oninput="render()">
     <select id="cat" onchange="render()"><option value="">— ทุกหมวด —</option></select>
-    <select id="sortBy" onchange="render()">
-      <option value="orig">ตามลำดับต้นฉบับ (PDF)</option>
-      <option value="c1">เรียงตามสิทธิ์1,2,3 แพทย์แนะนำ</option>
-      <option value="c2">เรียงตามสิทธิ์1,2,3 รพ.</option>
-      <option value="c3">เรียงตามสิทธิ์4/6</option>
-      <option value="code">เรียงตามรหัส</option>
-    </select>
   </div>
 </header>
 <main>
@@ -166,12 +161,6 @@ function currentRows(){
   const cat=document.getElementById('cat').value;
   if(q) rows=rows.filter(r=>(r.name||'').toLowerCase().includes(q)||r.code.toLowerCase().includes(q));
   if(cat) rows=rows.filter(r=>r.category===cat);
-  const sb=document.getElementById('sortBy').value;
-  rows.sort((a,b)=>{
-    if(sb==='orig')return 0;
-    if(sb==='code')return a.code.localeCompare(b.code);
-    return (val(b,sb)||0)-(val(a,sb)||0);
-  });
   return rows;
 }
 
